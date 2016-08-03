@@ -11,9 +11,11 @@ var (
 		Use:   "certificate-sidekick",
 		Short: "A sidekick process able to request certificate generation from Vault to write files to the local filesystem.",
 
-		Run: func(cmd *cobra.Command, args []string) {
-			cmd.HelpFunc()(cmd, nil)
-			os.Exit(1)
-		},
+		Run: cliRun,
 	}
 )
+
+func cliRun(cmd *cobra.Command, args []string) {
+	cmd.HelpFunc()(cmd, nil)
+	os.Exit(1)
+}
