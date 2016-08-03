@@ -11,7 +11,7 @@ BIN=$(PROJECT)
 GOPATH := $(BUILD_PATH)
 
 SOURCE=$(shell find . -name '*.go')
-
+GOVERSION=1.6.2
 VERSION=$(shell cat VERSION)
 COMMIT := $(shell git rev-parse --short HEAD)
 
@@ -47,14 +47,21 @@ deps:
 $(BIN): VERSION $(SOURCE)
 	echo Building for $(GOOS)/$(GOARCH)
 	docker run \
-	    --rm \
-	    -v $(shell pwd):/usr/code \
-	    -e GOPATH=/usr/code/.gobuild \
-	    -e GOOS=$(GOOS) \
-	    -e GOARCH=$(GOARCH) \
-	    -w /usr/code \
-	    golang:1.6 \
-	    go build -a -ldflags "-X main.projectVersion=$(VERSION) -X main.projectBuild=$(COMMIT)" -o $(BIN)
+		--rm \
+		-v $(shell pwd):/usr/code \
+		-e GOPATH=/usr/code/.gobuild \
+		-e GOOS=$(GOOS) \
+		-e GOARCH=$(GOARCH) \
+		-w /usr/code \
+		golang:$(GOVERSION) \
+		go build -a -ldflags "\
+			-X github.com/giantswarm/certificate-sidekick/cli.version=$(VERSION) \
+			-X github.com/giantswarm/certificate-sidekick/cli.goVersion=$(GOVERSION) \
+			-X github.com/giantswarm/certificate-sidekick/cli.gitCommit=$(COMMIT) \
+			-X github.com/giantswarm/certificate-sidekick/cli.osArch=$(GOOS)/$(GOARCH)\
+		" \
+		-o $(BIN)
+
 
 run-tests:
 	GOPATH=$(GOPATH) go test -v ./...
