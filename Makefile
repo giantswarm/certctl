@@ -1,4 +1,4 @@
-PROJECT=certificate-sidekick
+PROJECT=certctl
 
 BUILD_PATH := $(shell pwd)/.gobuild
 
@@ -55,10 +55,10 @@ $(BIN): VERSION $(SOURCE)
 		-w /usr/code \
 		golang:$(GOVERSION) \
 		go build -a -ldflags "\
-			-X github.com/giantswarm/certificate-sidekick/cli.version=$(VERSION) \
-			-X github.com/giantswarm/certificate-sidekick/cli.goVersion=$(GOVERSION) \
-			-X github.com/giantswarm/certificate-sidekick/cli.gitCommit=$(COMMIT) \
-			-X github.com/giantswarm/certificate-sidekick/cli.osArch=$(GOOS)/$(GOARCH)\
+			-X github.com/giantswarm/certctl/cli.version=$(VERSION) \
+			-X github.com/giantswarm/certctl/cli.goVersion=$(GOVERSION) \
+			-X github.com/giantswarm/certctl/cli.gitCommit=$(COMMIT) \
+			-X github.com/giantswarm/certctl/cli.osArch=$(GOOS)/$(GOARCH)\
 		" \
 		-o $(BIN)
 
