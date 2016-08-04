@@ -26,7 +26,33 @@ type PKIConfig struct {
 // PKIController manages the setup of Vault's PKI backends and all other
 // required steps necessary to be done.
 type PKIController interface {
+	// PKI management.
+
 	// SetupPKIBackend sets up a Vault PKI backend according to the given
 	// configuration.
 	SetupPKIBackend(config PKIConfig) error
+
+	// Path management.
+
+	// CAPath returns the path under which a cluster's certificate authority can
+	// be generated. This is very specific to Vault. The path structure is the
+	// following. See also https://github.com/hashicorp/vault/blob/6f0f46deb622ba9c7b14b2ec0be24cab3916f3d8/website/source/docs/secrets/pki/index.html.md#pkirootgenerate.
+	//
+	//     pki-<clusterID>/root/generate/exported
+	//
+	CAPath(clusterID string) string
+
+	// MountPath returns the path under which a cluster's PKI backend is mounted.
+	// This is very specific to Vault. The path structure is the following.
+	//
+	//     pki-<clusterID>
+	//
+	MountPath(clusterID string) string
+
+	// RolePath returns the path under which a role is registered. This is very
+	// specific to Vault. The path structure is the following. See also https://github.com/hashicorp/vault/blob/6f0f46deb622ba9c7b14b2ec0be24cab3916f3d8/website/source/docs/secrets/pki/index.html.md#pkiroles.
+	//
+	//     pki-<clusterID>/roles/role-<clusterID>
+	//
+	RolePath(clusterID string) string
 }
