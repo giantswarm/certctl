@@ -1,6 +1,7 @@
 package policygenerator
 
 import (
+	"fmt"
 	"net/http"
 
 	vaultclient "github.com/hashicorp/vault/api"
@@ -58,10 +59,14 @@ func (pg *policyGenerator) NewPKIIssuePolicy(clusterID string) (string, error) {
 	}
 
 	sysBackend := pg.VaultClient.Sys()
-	err = sysBackend.PutPolicy(clusterID, rules)
+	err = sysBackend.PutPolicy(pg.PolicyName(clusterID), rules)
 	if err != nil {
 		return "", maskAny(err)
 	}
 
 	return rules, nil
+}
+
+func (pg *policyGenerator) PolicyName(clusterID string) string {
+	return fmt.Sprintf("policy-%s", clusterID)
 }

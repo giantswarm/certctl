@@ -11,4 +11,8 @@ type PolicyGenerator interface {
 	// apply it to some Vault token. Returned is a string representation of the
 	// HCL formatted Vault policy, which might not be of interest at all.
 	NewPKIIssuePolicy(clusterID string) (string, error)
+
+	// PolicyName returns the name of a policy with respect to the given cluster
+	// ID.
+	PolicyName(clusterID string) string
 }
