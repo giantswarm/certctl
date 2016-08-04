@@ -7,6 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/giantswarm/certctl/service/policy-generator"
 	"github.com/giantswarm/certctl/service/vault-factory"
 )
 
@@ -33,16 +34,30 @@ func generateSignedRun(cmd *cobra.Command, args []string) {
 		log.Fatalf("%#v\n", maskAnyf(invalidConfigError, "Vault token must not be empty"))
 	}
 
-	// Create Vault client and configure it with the provided admin token.
-	newVaultConfig := vaultfactory.DefaultConfig()
-	newVaultConfig.HTTPClient = &http.Client{}
-	newVaultConfig.Address = generateSignedVaultAddress
-	newVaultConfig.AdminToken = generateSignedVaultToken
-	newVault, err := vaultfactory.New(newVaultConfig)
+	// Create a Vault client factory.
+	newVaultFactoryConfig := vaultfactory.DefaultConfig()
+	newVaultFactoryConfig.HTTPClient = &http.Client{}
+	newVaultFactoryConfig.Address = generateSignedVaultAddress
+	newVaultFactoryConfig.AdminToken = generateSignedVaultToken
+	newVaultFactory, err := vaultfactory.New(newVaultFactoryConfig)
 	if err != nil {
 		log.Fatalf("%#v\n", maskAny(err))
 	}
-	fmt.Printf("%#v\n", newVault)
+
+	// Create a Vault client and configure it with the provided admin token
+	// through the factory.
+	newVaultClient, err := newVaultFactory.NewClient()
+	if err != nil {
+		log.Fatalf("%#v\n", maskAny(err))
+	}
+
+	newPolicyGeneratorConfig := policygenerator.DefaultConfig()
+	newPolicyGeneratorConfig.VaultClient = newVaultClient
+	newPolicyGenerator, err := policygenerator.New(newPolicyGeneratorConfig)
+	if err != nil {
+		log.Fatalf("%#v\n", maskAny(err))
+	}
+	fmt.Printf("%#v\n", newPolicyGenerator)
 
 	// TODO
 }
