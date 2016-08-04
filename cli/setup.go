@@ -18,7 +18,7 @@ type setupFlags struct {
 
 var (
 	setupCmd = &cobra.Command{
-		Use:   "ca",
+		Use:   "setup",
 		Short: "Setup a Vault PKI backend including all necessary requirements.",
 		Run:   setupRun,
 	}
