@@ -5,7 +5,7 @@ import (
 
 	vaultclient "github.com/hashicorp/vault/api"
 
-	"github.com/giantswarm/certificate-sidekick/service/spec"
+	"github.com/giantswarm/certctl/service/spec"
 )
 
 // Config represents the configuration used to create a new Vault factory.

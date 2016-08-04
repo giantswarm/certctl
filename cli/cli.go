@@ -8,8 +8,8 @@ import (
 
 var (
 	CLICmd = &cobra.Command{
-		Use:   "certificate-sidekick",
-		Short: "A sidekick process able to request certificate generation from Vault to write files to the local filesystem.",
+		Use:   "certctl",
+		Short: "A command line tool able to request certificate generation from Vault to write certificate files to the local filesystem.",
 
 		Run: cliRun,
 	}

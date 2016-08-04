@@ -7,7 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/giantswarm/certificate-sidekick/service/vault-factory"
+	"github.com/giantswarm/certctl/service/vault-factory"
 )
 
 var (

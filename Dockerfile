@@ -1,6 +1,6 @@
 FROM busybox:ubuntu-14.04
 
 RUN mkdir -p /opt
-ADD ./certificate-sidekick /opt/certificate-sidekick
+ADD ./certctl /opt/certctl
 
-ENTRYPOINT ["/opt/certificate-sidekick"]
+ENTRYPOINT ["/opt/certctl"]

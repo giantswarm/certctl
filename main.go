@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"github.com/giantswarm/certificate-sidekick/cli"
+	"github.com/giantswarm/certctl/cli"
 )
 
 func main() {
