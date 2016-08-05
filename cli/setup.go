@@ -64,5 +64,7 @@ func setupRun(cmd *cobra.Command, args []string) {
 	}
 	fmt.Printf("%#v\n", newPolicyGenerator)
 
-	// TODO
+	// TODO create policies.
+	// TODO create tokens having policies applied.
+	// TODO setup PKI backend.
 }

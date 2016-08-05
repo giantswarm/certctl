@@ -102,5 +102,5 @@ func issueRun(cmd *cobra.Command, args []string) {
 	fmt.Printf("key: %#v\n", key)
 	fmt.Printf("ca: %#v\n", ca)
 
-	// TODO
+	// TODO write certificate data into separate files.
 }
