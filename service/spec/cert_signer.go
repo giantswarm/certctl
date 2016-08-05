@@ -3,17 +3,12 @@ package spec
 // IssueConfig is used to configure the process of issuing a certificate key
 // pair using the CertSigner.
 type IssueConfig struct {
-	// TODO
-
-	// ClusterID represents the cluster ID a PKI backend setup should be done.
-	// This ID is used to restrict access on Vault related operations for a
-	// specific cluster. E.g. the Vault PKI backend will be mounted on a path
-	// containing this ID. That way Vault policies will restrict access to this
-	// specific path.
+	// ClusterID represents the cluster ID a new certificate should be issued
+	// for.
 	ClusterID string `json:"cluster_id"`
 
-	// CommonName is the common name used to configure the root CA associated
-	// with the current PKI backend.
+	// CommonName is the common name used to configure the issued certificate
+	// that is being requested.
 	CommonName string `json:"common_name"`
 
 	// TTL configures the time to live for the requested certificate. This is a
@@ -23,5 +18,15 @@ type IssueConfig struct {
 
 // CertSigner manages the process of issuing new certificate key pairs
 type CertSigner interface {
-	Issue()
+	// Issue generates a new signed certificate with respect to the given
+	// configuration.
+	Issue(config IssueConfig) error
+
+	// SignedPath returns the path under which a certificate can be generated.
+	// This is very specific to Vault. The path structure is the following. See
+	// also https://github.com/hashicorp/vault/blob/6f0f46deb622ba9c7b14b2ec0be24cab3916f3d8/website/source/docs/secrets/pki/index.html.md#pkiissue.
+	//
+	//     pki-<clusterID>/issue/role-<clusterID>
+	//
+	SignedPath(clusterID string) string
 }
