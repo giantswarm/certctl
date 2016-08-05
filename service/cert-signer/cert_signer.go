@@ -35,7 +35,7 @@ func DefaultConfig() Config {
 }
 
 // New creates a new configured certificate signer.
-func New(config Config) (spec.PolicyGenerator, error) {
+func New(config Config) (spec.CertSigner, error) {
 	newCertSigner := &certSigner{
 		Config: config,
 	}
@@ -52,9 +52,9 @@ type certSigner struct {
 	Config
 }
 
-func (cs *certSigner) Issue(config spec.IssueConfig) error {
+func (cs *certSigner) Issue(config spec.IssueConfig) (string, string, string, error) {
 	// Create a client for issuing a new signed certificate.
-	logicalStore := newVaultClient.Logical()
+	logicalStore := cs.VaultClient.Logical()
 
 	// Generate a certificate for the PKI backend signed by the certificate
 	// authority associated with the configured cluster ID.
@@ -64,10 +64,27 @@ func (cs *certSigner) Issue(config spec.IssueConfig) error {
 	}
 	secret, err := logicalStore.Write(cs.SignedPath(config.ClusterID), data)
 	if err != nil {
-		return maskAny(err)
+		return "", "", "", maskAny(err)
 	}
 
-	return nil
+	// Collect the certificate data from the secret response.
+	vCrt, ok := secret.Data["certificate"]
+	if !ok {
+		return "", "", "", maskAnyf(keyPairNotFoundError, "public key missing")
+	}
+	crt := vCrt.(string)
+	vKey, ok := secret.Data["private_key"]
+	if !ok {
+		return "", "", "", maskAnyf(keyPairNotFoundError, "private key missing")
+	}
+	key := vKey.(string)
+	vCA, ok := secret.Data["issuing_ca"]
+	if !ok {
+		return "", "", "", maskAnyf(keyPairNotFoundError, "root CA missing")
+	}
+	ca := vCA.(string)
+
+	return crt, key, ca, nil
 }
 
 func (cs *certSigner) SignedPath(clusterID string) string {

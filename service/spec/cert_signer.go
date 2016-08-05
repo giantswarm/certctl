@@ -20,7 +20,7 @@ type IssueConfig struct {
 type CertSigner interface {
 	// Issue generates a new signed certificate with respect to the given
 	// configuration.
-	Issue(config IssueConfig) error
+	Issue(config IssueConfig) (string, string, string, error)
 
 	// SignedPath returns the path under which a certificate can be generated.
 	// This is very specific to Vault. The path structure is the following. See

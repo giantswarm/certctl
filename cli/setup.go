@@ -63,5 +63,6 @@ func setupRun(cmd *cobra.Command, args []string) {
 		log.Fatalf("%#v\n", maskAny(err))
 	}
 	fmt.Printf("%#v\n", newPolicyGenerator)
+
 	// TODO
 }
