@@ -7,7 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/giantswarm/certctl/service/policy-generator"
+	"github.com/giantswarm/certctl/service/token-generator"
 	"github.com/giantswarm/certctl/service/vault-factory"
 )
 
@@ -55,13 +55,13 @@ func setupRun(cmd *cobra.Command, args []string) {
 		log.Fatalf("%#v\n", maskAny(err))
 	}
 
-	// Create a policy generator to create a new policy for the current cluster.
-	newPolicyGeneratorConfig := policygenerator.DefaultConfig()
-	newPolicyGeneratorConfig.VaultClient = newVaultClient
-	newPolicyGenerator, err := policygenerator.New(newPolicyGeneratorConfig)
+	// Create a token generator to create new tokens for the current cluster.
+	newTokenGeneratorConfig := tokengenerator.DefaultConfig()
+	newTokenGeneratorConfig.VaultClient = newVaultClient
+	newTokenGenerator, err := tokengenerator.New(newTokenGeneratorConfig)
 	if err != nil {
 		log.Fatalf("%#v\n", maskAny(err))
 	}
-	fmt.Printf("%#v\n", newPolicyGenerator)
+	fmt.Printf("%#v\n", newTokenGenerator)
 	// TODO
 }
