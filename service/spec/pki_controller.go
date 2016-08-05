@@ -18,7 +18,7 @@ type PKIConfig struct {
 	// with the current PKI backend.
 	CommonName string `json:"common_name"`
 
-	// TTL configures the time to live for the requested certificate. This is a
+	// TTL configures the time to live for the root CA being set up. This is a
 	// golang time string with the allowed units s, m and h.
 	TTL string `json:"ttl"`
 }
