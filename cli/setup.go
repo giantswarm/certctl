@@ -11,34 +11,38 @@ import (
 	"github.com/giantswarm/certctl/service/vault-factory"
 )
 
+type setupFlags struct {
+	VaultAddress string
+	VaultToken   string
+}
+
 var (
-	generateSignedCmd = &cobra.Command{
-		Use:   "signed",
-		Short: "Generate signed certificates.",
-		Run:   generateSignedRun,
+	setupCmd = &cobra.Command{
+		Use:   "setup",
+		Short: "Setup a Vault PKI backend including all necessary requirements.",
+		Run:   setupRun,
 	}
 
-	generateSignedVaultAddress string
-	generateSignedVaultToken   string
+	newSetupFlags = &setupFlags{}
 )
 
 func init() {
-	generateCmd.AddCommand(generateSignedCmd)
+	CLICmd.AddCommand(setupCmd)
 
-	generateSignedCmd.Flags().StringVar(&generateSignedVaultAddress, "vault-address", "http://127.0.0.1:8200", "Address used to connect to Vault.")
-	generateSignedCmd.Flags().StringVar(&generateSignedVaultToken, "vault-token", "", "Token used to authenticate against Vault.")
+	setupCmd.Flags().StringVar(&newSetupFlags.VaultAddress, "vault-address", "http://127.0.0.1:8200", "Address used to connect to Vault.")
+	setupCmd.Flags().StringVar(&newSetupFlags.VaultToken, "vault-token", "", "Token used to authenticate against Vault.")
 }
 
-func generateSignedRun(cmd *cobra.Command, args []string) {
-	if generateSignedVaultToken == "" {
+func setupRun(cmd *cobra.Command, args []string) {
+	if newSetupFlags.VaultToken == "" {
 		log.Fatalf("%#v\n", maskAnyf(invalidConfigError, "Vault token must not be empty"))
 	}
 
 	// Create a Vault client factory.
 	newVaultFactoryConfig := vaultfactory.DefaultConfig()
 	newVaultFactoryConfig.HTTPClient = &http.Client{}
-	newVaultFactoryConfig.Address = generateSignedVaultAddress
-	newVaultFactoryConfig.AdminToken = generateSignedVaultToken
+	newVaultFactoryConfig.Address = newSetupFlags.VaultAddress
+	newVaultFactoryConfig.AdminToken = newSetupFlags.VaultToken
 	newVaultFactory, err := vaultfactory.New(newVaultFactoryConfig)
 	if err != nil {
 		log.Fatalf("%#v\n", maskAny(err))
@@ -51,6 +55,7 @@ func generateSignedRun(cmd *cobra.Command, args []string) {
 		log.Fatalf("%#v\n", maskAny(err))
 	}
 
+	// Create a policy generator to create a new policy for the current cluster.
 	newPolicyGeneratorConfig := policygenerator.DefaultConfig()
 	newPolicyGeneratorConfig.VaultClient = newVaultClient
 	newPolicyGenerator, err := policygenerator.New(newPolicyGeneratorConfig)
@@ -58,6 +63,5 @@ func generateSignedRun(cmd *cobra.Command, args []string) {
 		log.Fatalf("%#v\n", maskAny(err))
 	}
 	fmt.Printf("%#v\n", newPolicyGenerator)
-
 	// TODO
 }
