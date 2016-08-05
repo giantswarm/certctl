@@ -7,8 +7,8 @@ type PKIConfig struct {
 	// generated certificate authority is valid for.
 	AllowedDomains string `json:"allowed_domains"`
 
-	// ClusterID represents the cluster ID a PKI backend setup should be done.
-	// This ID is used to restrict access on Vault related operations for a
+	// ClusterID represents the cluster ID a PKI backend setup should be done
+	// for. This ID is used to restrict access on Vault related operations for a
 	// specific cluster. E.g. the Vault PKI backend will be mounted on a path
 	// containing this ID. That way Vault policies will restrict access to this
 	// specific path.
