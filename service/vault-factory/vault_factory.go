@@ -34,38 +34,38 @@ func DefaultConfig() Config {
 
 // New creates a new configured Vault factory.
 func New(config Config) (spec.VaultFactory, error) {
-	newSecret := &vault{
+	newVaultFactory := &vaultFactory{
 		Config: config,
 	}
 
 	// Dependencies.
-	if newSecret.Address == "" {
+	if newVaultFactory.Address == "" {
 		return nil, maskAnyf(invalidConfigError, "Vault address must not be empty")
 	}
 	// Settings.
-	if newSecret.HTTPClient == nil {
+	if newVaultFactory.HTTPClient == nil {
 		return nil, maskAnyf(invalidConfigError, "HTTP client must not be empty")
 	}
-	if newSecret.AdminToken == "" {
+	if newVaultFactory.AdminToken == "" {
 		return nil, maskAnyf(invalidConfigError, "Vault admin token must not be empty")
 	}
 
-	return newSecret, nil
+	return newVaultFactory, nil
 }
 
-type vault struct {
+type vaultFactory struct {
 	Config
 }
 
-func (v *vault) NewClient() (*vaultclient.Client, error) {
+func (vf *vaultFactory) NewClient() (*vaultclient.Client, error) {
 	newClientConfig := vaultclient.DefaultConfig()
-	newClientConfig.Address = v.Address
-	newClientConfig.HttpClient = v.HTTPClient
+	newClientConfig.Address = vf.Address
+	newClientConfig.HttpClient = vf.HTTPClient
 	newVaultClient, err := vaultclient.NewClient(newClientConfig)
 	if err != nil {
 		return nil, maskAny(err)
 	}
-	newVaultClient.SetToken(v.AdminToken)
+	newVaultClient.SetToken(vf.AdminToken)
 
 	return newVaultClient, nil
 }
