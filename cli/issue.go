@@ -34,8 +34,8 @@ var (
 func init() {
 	CLICmd.AddCommand(issueCmd)
 
-	issueCmd.Flags().StringVar(&newIssueFlags.VaultAddress, "vault-address", "http://127.0.0.1:8200", "Address used to connect to Vault.")
-	issueCmd.Flags().StringVar(&newIssueFlags.VaultToken, "vault-token", "", "Token used to authenticate against Vault.")
+	issueCmd.Flags().StringVar(&newIssueFlags.VaultAddress, "vault-addr", fromEnv("VAULT_ADDR", "http://127.0.0.1:8200"), "Address used to connect to Vault.")
+	issueCmd.Flags().StringVar(&newIssueFlags.VaultToken, "vault-token", fromEnv("VAULT_TOKEN", ""), "Token used to authenticate against Vault.")
 
 	issueCmd.Flags().StringVar(&newIssueFlags.ClusterID, "cluster-id", "", "Cluster ID used to generate a new signed certificate for.")
 	issueCmd.Flags().StringVar(&newIssueFlags.CommonName, "common-name", "", "Common name used to generate a new root CA for.")
