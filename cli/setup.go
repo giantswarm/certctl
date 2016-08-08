@@ -97,7 +97,7 @@ func setupRun(cmd *cobra.Command, args []string) {
 		log.Fatalf("%#v\n", maskAny(err))
 	}
 
-	// Create a PKI controller to setup the cluster's PKI backend uncluding it's
+	// Create a PKI controller to setup the cluster's PKI backend including its
 	// root CA and role.
 	newPKIControllerConfig := pkicontroller.DefaultConfig()
 	newPKIControllerConfig.VaultClient = newVaultClient
