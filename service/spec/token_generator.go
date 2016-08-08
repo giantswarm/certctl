@@ -8,9 +8,8 @@ type TokenConfig struct {
 	// ID.
 	ClusterID string `json:"cluster_id"`
 
-	// Policies represents the policy names used to be applied to the generated
-	// Vault tokens.
-	Policies []string `json:"policies"`
+	// Num represents the number of tokens the generator should create.
+	Num int `json:"num"`
 
 	// TTL configures the time to live for the requested token. This is a
 	// golang time string with the allowed units s, m and h.
@@ -30,7 +29,12 @@ type TokenGenerator interface {
 	// be of interest at all.
 	NewPKIIssuePolicy(clusterID string) (string, string, error)
 
-	// NewPKIIssueToken generates a new Vault token allowed to be used to issue
+	// NewPKIIssueTokens generates new Vault tokens allowed to be used to issue
 	// signed certificates with respect to the given configuration.
-	NewPKIIssueToken(config spec.TokenConfig) (string, error)
+	NewPKIIssueTokens(config TokenConfig) ([]string, error)
+
+	// PKIIssuePolicyName returns the name of a policy used to restrict access to
+	// Vault for PKI issue requests. This policy is scoped to the given cluster
+	// ID.
+	PKIIssuePolicyName(clusterID string) string
 }

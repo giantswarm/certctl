@@ -62,8 +62,8 @@ func (pc *pkiController) SetupPKIBackend(config spec.PKIConfig) error {
 	if err != nil {
 		return maskAny(err)
 	}
-	config, ok := mounts[pc.MountPath(config.ClusterID)+"/"]
-	if !ok || config.Type != "pki" {
+	mountOutput, ok := mounts[pc.MountPath(config.ClusterID)+"/"]
+	if !ok || mountOutput.Type != "pki" {
 		newMountConfig := &vaultclient.MountInput{
 			Type:        "pki",
 			Description: fmt.Sprintf("PKI backend for cluster ID '%s'", config.ClusterID),
@@ -85,7 +85,7 @@ func (pc *pkiController) SetupPKIBackend(config spec.PKIConfig) error {
 		"ttl":         config.TTL,
 		"common_name": config.CommonName,
 	}
-	_, err := logicalStore.Write(pc.CAPath(config.ClusterID), data)
+	_, err = logicalStore.Write(pc.CAPath(config.ClusterID), data)
 	if err != nil {
 		return maskAny(err)
 	}

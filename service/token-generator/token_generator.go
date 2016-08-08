@@ -53,38 +53,73 @@ type tokenGenerator struct {
 }
 
 func (tg *tokenGenerator) NewPKIIssuePolicy(clusterID string) (string, string, error) {
-	// Create HCL policy rules.
-	rules, err := execTemplate(pkiIssuePolicyTemplate, pkiIssuePolicyContext{ClusterID: clusterID})
+	// Get the system backend for policy operations.
+	sysBackend := tg.VaultClient.Sys()
+
+	// Create policy name.
+	policyName := tg.PKIIssuePolicyName(clusterID)
+
+	// Check if the policy is already there. In case there is already a policy we
+	// do not need to recreate/update it.
+	rules, err := sysBackend.GetPolicy(policyName)
 	if err != nil {
-		return "", maskAny(err)
+		return "", "", maskAny(err)
+	}
+	if rules != "" {
+		return "", "", maskAny(policyAlreadyExistsError)
+	}
+
+	// Create HCL policy rules.
+	rules, err = execTemplate(pkiIssuePolicyTemplate, pkiIssuePolicyContext{ClusterID: clusterID})
+	if err != nil {
+		return "", "", maskAny(err)
 	}
 
 	// Actually create the policy within Vault.
-	sysBackend := tg.VaultClient.Sys()
-	policyName := uuid.New()
 	err = sysBackend.PutPolicy(policyName, rules)
 	if err != nil {
-		return "", maskAny(err)
+		return "", "", maskAny(err)
 	}
 
 	return policyName, rules, nil
 }
 
-func (tg *tokenGenerator) NewPKIIssueToken(config spec.TokenConfig) (string, error) {
-	tokenAuth := tg.VaultClient.Auth().Token()
-	tokenName := uuid.New()
-	newCreateRequest := &vaultclient.TokenCreateRequest{
-		ID: tokenName,
-		Metadata: map[string]string{
-			"clusterid": config.ClusterID,
-		},
-		Policies: config.Policies,
-		TTL:      config.TTL,
-	}
-	_, err := tokenAuth.Create(newCreateRequest)
-	if err != nil {
-		return "", maskAny(err)
+func (tg *tokenGenerator) NewPKIIssueTokens(config spec.TokenConfig) ([]string, error) {
+	// Make sure there exist a policy we can use.
+	policyName, _, err := tg.NewPKIIssuePolicy(config.ClusterID)
+	if IsPolicyAlreadyExists(err) {
+		// In case the policy already exists we can savely go ahead and apply this
+		// policy to new tokens.
+	} else if err != nil {
+		return nil, maskAny(err)
 	}
 
-	return tokenName, nil
+	// Get the token auth backend to create new tokens.
+	tokenAuth := tg.VaultClient.Auth().Token()
+
+	// Create the requested amount of tokens.
+	var tokens []string
+	for i := 0; i < config.Num; i++ {
+		tokenID := uuid.New()
+		tokens = append(tokens, tokenID)
+		newCreateRequest := &vaultclient.TokenCreateRequest{
+			ID: tokenID,
+			Metadata: map[string]string{
+				"cluster-id": config.ClusterID,
+			},
+			NoParent: true,
+			Policies: []string{policyName},
+			TTL:      config.TTL,
+		}
+		_, err := tokenAuth.Create(newCreateRequest)
+		if err != nil {
+			return nil, maskAny(err)
+		}
+	}
+
+	return tokens, nil
+}
+
+func (tg *tokenGenerator) PKIIssuePolicyName(clusterID string) string {
+	return fmt.Sprintf("pki-issue-policy-%s", clusterID)
 }
