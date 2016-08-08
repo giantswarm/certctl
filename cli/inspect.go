@@ -101,8 +101,8 @@ func inspectRun(cmd *cobra.Command, args []string) {
 	fmt.Printf("    Root CA generated:   %t\n", generated)
 	fmt.Printf("    PKI role created:    %t\n", created)
 	fmt.Printf("\n")
-	fmt.Printf("Tokens might or might not be generated for this cluster.\n")
-	fmt.Printf("Information about these secrets need to be inspected directly\n")
-	fmt.Printf("where the cluster is installed, and cannot be retrieved through\n")
-	fmt.Printf("the API.\n")
+	fmt.Printf("Tokens may have been generated for this cluster. Created tokens\n")
+	fmt.Printf("cannot be shown as they are secret. Information about these\n")
+	fmt.Printf("secrets needs to be looked up directly from the location of the\n")
+	fmt.Printf("cluster's installation.\n")
 }
