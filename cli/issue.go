@@ -52,9 +52,9 @@ func init() {
 	issueCmd.Flags().StringVar(&newIssueFlags.CommonName, "common-name", "", "Common name used to generate a new root CA for.")
 	issueCmd.Flags().StringVar(&newIssueFlags.TTL, "ttl", "720h", "TTL used to generate a new signed certificate for.")
 
-	issueCmd.Flags().StringVar(&newIssueFlags.CrtFilePath, "crt-file", "/tmp/crt.pem", "File path used to write the generated public key to.")
-	issueCmd.Flags().StringVar(&newIssueFlags.KeyFilePath, "key-file", "/tmp/key.pem", "File path used to write the generated private key to.")
-	issueCmd.Flags().StringVar(&newIssueFlags.CAFilePath, "ca-file", "/tmp/ca.pem", "File path used to write the issuing root CA to.")
+	issueCmd.Flags().StringVar(&newIssueFlags.CrtFilePath, "crt-file", "", "File path used to write the generated public key to.")
+	issueCmd.Flags().StringVar(&newIssueFlags.KeyFilePath, "key-file", "", "File path used to write the generated private key to.")
+	issueCmd.Flags().StringVar(&newIssueFlags.CAFilePath, "ca-file", "", "File path used to write the issuing root CA to.")
 }
 
 func issueValidate(newIssueFlags *issueFlags) error {
@@ -66,6 +66,15 @@ func issueValidate(newIssueFlags *issueFlags) error {
 	}
 	if newIssueFlags.CommonName == "" {
 		return maskAnyf(invalidConfigError, "common name must not be empty")
+	}
+	if newIssueFlags.CrtFilePath == "" {
+		return maskAnyf(invalidConfigError, "--crt-file name must not be empty")
+	}
+	if newIssueFlags.KeyFilePath == "" {
+		return maskAnyf(invalidConfigError, "--key-file name must not be empty")
+	}
+	if newIssueFlags.CAFilePath == "" {
+		return maskAnyf(invalidConfigError, "--ca-file name must not be empty")
 	}
 
 	return nil
