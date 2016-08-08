@@ -33,6 +33,7 @@ var (
 func init() {
 	CLICmd.AddCommand(inspectCmd)
 
+	// TODO fetch address and token from environment variables if available.
 	inspectCmd.Flags().StringVar(&newInspectFlags.VaultAddress, "vault-address", "http://127.0.0.1:8200", "Address used to connect to Vault.")
 	inspectCmd.Flags().StringVar(&newInspectFlags.VaultToken, "vault-token", "", "Token used to authenticate against Vault.")
 
