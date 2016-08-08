@@ -1,4 +1,4 @@
-package policygenerator
+package tokengenerator
 
 import (
 	"bytes"

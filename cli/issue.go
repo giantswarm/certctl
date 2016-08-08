@@ -38,7 +38,7 @@ func init() {
 	issueCmd.Flags().StringVar(&newIssueFlags.VaultToken, "vault-token", "", "Token used to authenticate against Vault.")
 
 	issueCmd.Flags().StringVar(&newIssueFlags.ClusterID, "cluster-id", "", "Cluster ID used to generate a new signed certificate for.")
-	issueCmd.Flags().StringVar(&newIssueFlags.CommonName, "common-name", "", "Common name used to generate a new signed certificate for.")
+	issueCmd.Flags().StringVar(&newIssueFlags.CommonName, "common-name", "", "Common name used to generate a new root CA for.")
 	issueCmd.Flags().StringVar(&newIssueFlags.TTL, "ttl", "720h", "TTL used to generate a new signed certificate for.")
 }
 

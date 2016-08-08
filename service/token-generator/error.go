@@ -1,4 +1,4 @@
-package policygenerator
+package tokengenerator
 
 import (
 	"fmt"
@@ -27,4 +27,11 @@ var invalidConfigError = errgo.New("invalid config")
 // IsInvalidConfig asserts invalidConfigError.
 func IsInvalidConfig(err error) bool {
 	return errgo.Cause(err) == invalidConfigError
+}
+
+var policyAlreadyExistsError = errgo.New("policy already exists")
+
+// IsPolicyAlreadyExists asserts policyAlreadyExistsError.
+func IsPolicyAlreadyExists(err error) bool {
+	return errgo.Cause(err) == policyAlreadyExistsError
 }
