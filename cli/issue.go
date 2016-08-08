@@ -2,8 +2,10 @@ package cli
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/spf13/cobra"
 
@@ -16,9 +18,17 @@ type issueFlags struct {
 	VaultAddress string
 	VaultToken   string
 
-	ClusterID  string
+	// Cluster
+	ClusterID string
+
+	// Certificate
 	CommonName string
 	TTL        string
+
+	// Path
+	CrtFilePath string
+	KeyFilePath string
+	CAFilePath  string
 }
 
 var (
@@ -38,8 +48,13 @@ func init() {
 	issueCmd.Flags().StringVar(&newIssueFlags.VaultToken, "vault-token", "", "Token used to authenticate against Vault.")
 
 	issueCmd.Flags().StringVar(&newIssueFlags.ClusterID, "cluster-id", "", "Cluster ID used to generate a new signed certificate for.")
+
 	issueCmd.Flags().StringVar(&newIssueFlags.CommonName, "common-name", "", "Common name used to generate a new root CA for.")
 	issueCmd.Flags().StringVar(&newIssueFlags.TTL, "ttl", "720h", "TTL used to generate a new signed certificate for.")
+
+	issueCmd.Flags().StringVar(&newIssueFlags.CrtFilePath, "crt-file", "/tmp/crt.pem", "File path used to write the generated public key to.")
+	issueCmd.Flags().StringVar(&newIssueFlags.KeyFilePath, "key-file", "/tmp/key.pem", "File path used to write the generated private key to.")
+	issueCmd.Flags().StringVar(&newIssueFlags.CAFilePath, "ca-file", "/tmp/ca.pem", "File path used to write the issuing root CA to.")
 }
 
 func issueValidate(newIssueFlags *issueFlags) error {
@@ -98,9 +113,20 @@ func issueRun(cmd *cobra.Command, args []string) {
 		log.Fatalf("%#v\n", maskAny(err))
 	}
 
-	fmt.Printf("crt: %#v\n", crt)
-	fmt.Printf("key: %#v\n", key)
-	fmt.Printf("ca: %#v\n", ca)
+	err = ioutil.WriteFile(newIssueFlags.CrtFilePath, []byte(crt), os.FileMode(0600))
+	if err != nil {
+		log.Fatalf("%#v\n", maskAny(err))
+	}
+	err = ioutil.WriteFile(newIssueFlags.KeyFilePath, []byte(key), os.FileMode(0600))
+	if err != nil {
+		log.Fatalf("%#v\n", maskAny(err))
+	}
+	err = ioutil.WriteFile(newIssueFlags.CAFilePath, []byte(ca), os.FileMode(0600))
+	if err != nil {
+		log.Fatalf("%#v\n", maskAny(err))
+	}
 
-	// TODO write certificate data into separate files.
+	fmt.Printf("Public key written to '%s'.\n", newIssueFlags.CrtFilePath)
+	fmt.Printf("Private key written to '%s'.\n", newIssueFlags.KeyFilePath)
+	fmt.Printf("Root CA written to '%s'.\n", newIssueFlags.CAFilePath)
 }
