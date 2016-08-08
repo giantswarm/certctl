@@ -138,4 +138,6 @@ func setupRun(cmd *cobra.Command, args []string) {
 	}
 
 	fmt.Printf("%#v\n", tokens)
+
+	// TODO proper output of what happened.
 }
