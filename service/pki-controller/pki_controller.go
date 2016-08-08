@@ -53,17 +53,80 @@ type pkiController struct {
 
 // PKI management.
 
+func (pc *pkiController) IsCAGenerated(clusterID string) (bool, error) {
+	// Create a client for the logical backend configured with the Vault token
+	// used for the current cluster's PKI backend.
+	logicalBackend := pc.VaultClient.Logical()
+
+	// Check if a root CA for the given cluster ID exists.
+	secret, err := logicalBackend.Read(pc.ReadCAPath(clusterID))
+	if IsNoVaultHandlerDefined(err) {
+		return false, nil
+	} else if err != nil {
+		return false, maskAny(err)
+	}
+	if secret.Data["certificate"] == "" || secret.Data["error"] != "" {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+func (pc *pkiController) IsPKIMounted(clusterID string) (bool, error) {
+	// Create a client for the system backend configured with the Vault token
+	// used for the current cluster's PKI backend.
+	sysBackend := pc.VaultClient.Sys()
+
+	// Check if a PKI for the given cluster ID exists.
+	mounts, err := sysBackend.ListMounts()
+	if IsNoVaultHandlerDefined(err) {
+		return false, nil
+	} else if err != nil {
+		return false, maskAny(err)
+	}
+	mountOutput, ok := mounts[pc.ListMountsPath(clusterID)+"/"]
+	if !ok || mountOutput.Type != "pki" {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+func (pc *pkiController) IsRoleCreated(clusterID string) (bool, error) {
+	// Create a client for the logical backend configured with the Vault token
+	// used for the current cluster's PKI backend.
+	logicalBackend := pc.VaultClient.Logical()
+
+	// Check if a PKI for the given cluster ID exists.
+	secret, err := logicalBackend.List(pc.ListRolesPath(clusterID))
+	if IsNoVaultHandlerDefined(err) {
+		return false, nil
+	} else if err != nil {
+		return false, maskAny(err)
+	}
+	_, ok := secret.Data[pc.PKIRoleName(clusterID)]
+	if !ok {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+func (pc *pkiController) PKIRoleName(clusterID string) string {
+	return fmt.Sprintf("role-%s", clusterID)
+}
+
 func (pc *pkiController) SetupPKIBackend(config spec.PKIConfig) error {
 	// Create a client for the system backend configured with the Vault token
 	// used for the current cluster's PKI backend.
 	sysBackend := pc.VaultClient.Sys()
+
 	// Mount a new PKI backend for the cluster, if it does not already exist.
-	mounts, err := sysBackend.ListMounts()
+	mounted, err := pc.IsPKIMounted(config.ClusterID)
 	if err != nil {
 		return maskAny(err)
 	}
-	mountOutput, ok := mounts[pc.MountPath(config.ClusterID)+"/"]
-	if !ok || mountOutput.Type != "pki" {
+	if !mounted {
 		newMountConfig := &vaultclient.MountInput{
 			Type:        "pki",
 			Description: fmt.Sprintf("PKI backend for cluster ID '%s'", config.ClusterID),
@@ -71,7 +134,7 @@ func (pc *pkiController) SetupPKIBackend(config spec.PKIConfig) error {
 				MaxLeaseTTL: config.TTL,
 			},
 		}
-		err = sysBackend.Mount(pc.MountPath(config.ClusterID), newMountConfig)
+		err = sysBackend.Mount(pc.MountPKIPath(config.ClusterID), newMountConfig)
 		if err != nil {
 			return maskAny(err)
 		}
@@ -79,25 +142,40 @@ func (pc *pkiController) SetupPKIBackend(config spec.PKIConfig) error {
 
 	// Create a client for the logical backend configured with the Vault token
 	// used for the current cluster's root CA and role.
-	logicalStore := pc.VaultClient.Logical()
-	// Generate a certificate authority for the PKI backend.
-	data := map[string]interface{}{
-		"ttl":         config.TTL,
-		"common_name": config.CommonName,
-	}
-	_, err = logicalStore.Write(pc.CAPath(config.ClusterID), data)
+	logicalBackend := pc.VaultClient.Logical()
+
+	// Generate a certificate authority for the PKI backend, if it does not
+	// already exist.
+	generated, err := pc.IsCAGenerated(config.ClusterID)
 	if err != nil {
 		return maskAny(err)
 	}
-	// Create role for the mounted PKI backend.
-	data = map[string]interface{}{
-		"allowed_domains":  config.AllowedDomains,
-		"allow_subdomains": "true",
-		"ttl":              config.TTL,
+	if !generated {
+		data := map[string]interface{}{
+			"ttl":         config.TTL,
+			"common_name": config.CommonName,
+		}
+		_, err = logicalBackend.Write(pc.WriteCAPath(config.ClusterID), data)
+		if err != nil {
+			return maskAny(err)
+		}
 	}
-	_, err = logicalStore.Write(pc.RolePath(config.ClusterID), data)
+
+	// Create a role for the mounted PKI backend, if it does not already exist.
+	created, err := pc.IsRoleCreated(config.ClusterID)
 	if err != nil {
 		return maskAny(err)
+	}
+	if !created {
+		data := map[string]interface{}{
+			"allowed_domains":  config.AllowedDomains,
+			"allow_subdomains": "true",
+			"ttl":              config.TTL,
+		}
+		_, err = logicalBackend.Write(pc.WriteRolePath(config.ClusterID), data)
+		if err != nil {
+			return maskAny(err)
+		}
 	}
 
 	return nil
@@ -105,14 +183,26 @@ func (pc *pkiController) SetupPKIBackend(config spec.PKIConfig) error {
 
 // Path management.
 
-func (pc *pkiController) CAPath(clusterID string) string {
-	return fmt.Sprintf("pki-%s/root/generate/exported", clusterID)
+func (pc *pkiController) ReadCAPath(clusterID string) string {
+	return fmt.Sprintf("pki-%s/cert/ca", clusterID)
 }
 
-func (pc *pkiController) MountPath(clusterID string) string {
+func (pc *pkiController) MountPKIPath(clusterID string) string {
 	return fmt.Sprintf("pki-%s", clusterID)
 }
 
-func (pc *pkiController) RolePath(clusterID string) string {
-	return fmt.Sprintf("pki-%s/roles/role-%s", clusterID, clusterID)
+func (pc *pkiController) ListMountsPath(clusterID string) string {
+	return fmt.Sprintf("pki-%s", clusterID)
+}
+
+func (pc *pkiController) ListRolesPath(clusterID string) string {
+	return fmt.Sprintf("pki-%s/roles/", clusterID)
+}
+
+func (pc *pkiController) WriteCAPath(clusterID string) string {
+	return fmt.Sprintf("pki-%s/root/generate/internal", clusterID)
+}
+
+func (pc *pkiController) WriteRolePath(clusterID string) string {
+	return fmt.Sprintf("pki-%s/roles/%s", clusterID, pc.PKIRoleName(clusterID))
 }
