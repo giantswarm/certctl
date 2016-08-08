@@ -54,7 +54,7 @@ $(BIN): VERSION $(SOURCE)
 		-e GOARCH=$(GOARCH) \
 		-w /usr/code \
 		golang:$(GOVERSION) \
-		go build -a -ldflags "\
+		go build -a -ldflags " \
 			-X github.com/giantswarm/certctl/cli.version=$(VERSION) \
 			-X github.com/giantswarm/certctl/cli.goVersion=$(GOVERSION) \
 			-X github.com/giantswarm/certctl/cli.gitCommit=$(COMMIT) \
