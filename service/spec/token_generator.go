@@ -19,6 +19,9 @@ type TokenConfig struct {
 // TokenGenerator creates new Vault policies to restrict access capabilities
 // of e.g. Vault tokens.
 type TokenGenerator interface {
+	// DeletePKIIssuePolicy removes a policy from Vault using its name.
+	DeletePKIIssuePolicy(clusterID string) error
+
 	// IsPKIIssuePolicyCreated checks whether the PKI issue policy already
 	// exists.
 	IsPKIIssuePolicyCreated(clusterID string) (bool, error)

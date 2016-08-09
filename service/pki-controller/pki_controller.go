@@ -53,6 +53,26 @@ type pkiController struct {
 
 // PKI management.
 
+func (pc *pkiController) DeletePKIBackend(clusterID string) error {
+	// Create a client for the system backend configured with the Vault token
+	// used for the current cluster's PKI backend.
+	sysBackend := pc.VaultClient.Sys()
+
+	// Unmount the PKI backend, if it exists.
+	mounted, err := pc.IsPKIMounted(clusterID)
+	if err != nil {
+		return maskAny(err)
+	}
+	if mounted {
+		err = sysBackend.Unmount(pc.MountPKIPath(clusterID))
+		if err != nil {
+			return maskAny(err)
+		}
+	}
+
+	return nil
+}
+
 func (pc *pkiController) IsCAGenerated(clusterID string) (bool, error) {
 	// Create a client for the logical backend configured with the Vault token
 	// used for the current cluster's PKI backend.

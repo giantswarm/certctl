@@ -28,6 +28,10 @@ type PKIConfig struct {
 type PKIController interface {
 	// PKI management.
 
+	// DeletePKIBackend removes the PKI backend associated wit the given cluster
+	// ID.
+	DeletePKIBackend(clusterID string) error
+
 	// IsCAGenerated checks whether the root CA associated with the given cluster
 	// ID is generated.
 	IsCAGenerated(clusterID string) (bool, error)
