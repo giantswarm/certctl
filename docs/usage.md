@@ -33,7 +33,7 @@ Setting up a cluster works using the `setup` command. It is shown what happend.
 not mounted yet. A root CA is only generated if it is not generated yet. You
 get the picture. One exception of this behaviour is the token generation. Each
 call to `setup` generates `--num-tokens` tokens. So in case you need one more
-token it is save to simply call `setup` again for a specific cluster ID. Note
+token it is safe to simply call `setup` again for a specific cluster ID. Note
 that we set a Vault token with root capabilities for the cluster setup.
 ```
 $ certctl setup --allowed-domains=giantswarm.io --common-name=giantswarm.io --cluster-id=123
