@@ -137,7 +137,17 @@ func setupRun(cmd *cobra.Command, args []string) {
 		log.Fatalf("%#v\n", maskAny(err))
 	}
 
-	fmt.Printf("%#v\n", tokens)
-
-	// TODO proper output of what happened.
+	fmt.Printf("Set up cluster for ID '%s':\n", newSetupFlags.ClusterID)
+	fmt.Printf("\n")
+	fmt.Printf("    - PKI backend mounted\n")
+	fmt.Printf("    - Root CA generated\n")
+	fmt.Printf("    - PKI role created\n")
+	fmt.Printf("    - PKI policy created\n")
+	fmt.Printf("\n")
+	fmt.Printf("The following tokens have been generated for this cluster:\n")
+	fmt.Printf("\n")
+	for _, t := range tokens {
+		fmt.Printf("    %s\n", t)
+	}
+	fmt.Printf("\n")
 }
