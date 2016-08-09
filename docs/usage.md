@@ -68,7 +68,7 @@ cluster's installation.
 
 In case the cluster is set up, we can generate certificates for it using the
 `issue` command. Note that `issue` should only be provided the restricted token
-generated on `setup`. That way it is more save to automate the certificate
+generated on `setup`. That way it is more safe to automate the certificate
 generation. Any process can then issue certificates for the cluster it was set
 up for, and not more.
 ```
