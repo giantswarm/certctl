@@ -50,7 +50,7 @@ func init() {
 	issueCmd.Flags().StringVar(&newIssueFlags.ClusterID, "cluster-id", "", "Cluster ID used to generate a new signed certificate for.")
 
 	issueCmd.Flags().StringVar(&newIssueFlags.CommonName, "common-name", "", "Common name used to generate a new root CA for.")
-	issueCmd.Flags().StringVar(&newIssueFlags.TTL, "ttl", "720h", "TTL used to generate a new signed certificate for.")
+	issueCmd.Flags().StringVar(&newIssueFlags.TTL, "ttl", "719h", "TTL used to generate a new signed certificate for.")
 
 	issueCmd.Flags().StringVar(&newIssueFlags.CrtFilePath, "crt-file", "", "File path used to write the generated public key to.")
 	issueCmd.Flags().StringVar(&newIssueFlags.KeyFilePath, "key-file", "", "File path used to write the generated private key to.")

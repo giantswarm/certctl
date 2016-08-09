@@ -12,6 +12,10 @@ Download the latest release: https://github.com/giantswarm/certctl/releases/late
 
 Clone the git repository: https://github.com/giantswarm/certctl.git
 
+## Docs
+
+For some usage example please see the docs: [usage.md](/docs/usage.md).
+
 ## Contact
 
 - Mailing list: [giantswarm](https://groups.google.com/forum/!forum/giantswarm)
