@@ -115,7 +115,7 @@ func (pc *pkiController) IsRoleCreated(clusterID string) (bool, error) {
 
 	// When listing roles a list of role names is returned. Here we iterate over
 	// this list and if we find the desired role name, it means the role has
-	// already bee created.
+	// already been created.
 	if keys, ok := secret.Data["keys"]; ok {
 		if list, ok := keys.([]interface{}); ok {
 			for _, k := range list {
