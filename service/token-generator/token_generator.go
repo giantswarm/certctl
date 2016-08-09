@@ -52,46 +52,75 @@ type tokenGenerator struct {
 	Config
 }
 
-func (tg *tokenGenerator) NewPKIIssuePolicy(clusterID string) (string, string, error) {
+func (tg *tokenGenerator) DeletePKIIssuePolicy(clusterID string) error {
 	// Get the system backend for policy operations.
 	sysBackend := tg.VaultClient.Sys()
 
-	// Create policy name.
+	// Delete the policy by name if it is created.
+	created, err := tg.IsPKIIssuePolicyCreated(clusterID)
+	if err != nil {
+		return maskAny(err)
+	}
+	if created {
+		err := sysBackend.DeletePolicy(tg.PKIIssuePolicyName(clusterID))
+		if err != nil {
+			return maskAny(err)
+		}
+	}
+
+	return nil
+}
+
+func (tg *tokenGenerator) IsPKIIssuePolicyCreated(clusterID string) (bool, error) {
+	// Get the system backend for policy operations.
+	sysBackend := tg.VaultClient.Sys()
+
+	// Check if the policy is already there.
+	policies, err := sysBackend.ListPolicies()
+	if err != nil {
+		return false, maskAny(err)
+	}
+	for _, p := range policies {
+		if p == tg.PKIIssuePolicyName(clusterID) {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
+func (tg *tokenGenerator) NewPKIIssuePolicy(clusterID string) error {
+	// Get the system backend for policy operations.
+	sysBackend := tg.VaultClient.Sys()
+
+	// Create policy name and HCL policy rules.
 	policyName := tg.PKIIssuePolicyName(clusterID)
-
-	// Check if the policy is already there. In case there is already a policy we
-	// do not need to recreate/update it.
-	rules, err := sysBackend.GetPolicy(policyName)
+	rules, err := execTemplate(pkiIssuePolicyTemplate, pkiIssuePolicyContext{ClusterID: clusterID})
 	if err != nil {
-		return "", "", maskAny(err)
-	}
-	if rules != "" {
-		return "", "", maskAny(policyAlreadyExistsError)
-	}
-
-	// Create HCL policy rules.
-	rules, err = execTemplate(pkiIssuePolicyTemplate, pkiIssuePolicyContext{ClusterID: clusterID})
-	if err != nil {
-		return "", "", maskAny(err)
+		return maskAny(err)
 	}
 
 	// Actually create the policy within Vault.
 	err = sysBackend.PutPolicy(policyName, rules)
 	if err != nil {
-		return "", "", maskAny(err)
+		return maskAny(err)
 	}
 
-	return policyName, rules, nil
+	return nil
 }
 
 func (tg *tokenGenerator) NewPKIIssueTokens(config spec.TokenConfig) ([]string, error) {
-	// Make sure there exist a policy we can use.
-	policyName, _, err := tg.NewPKIIssuePolicy(config.ClusterID)
-	if IsPolicyAlreadyExists(err) {
-		// In case the policy already exists we can savely go ahead and apply this
-		// policy to new tokens.
-	} else if err != nil {
+	// In case there does no policy exist that allows to issue certificates on a
+	// PKI backend, create one.
+	created, err := tg.IsPKIIssuePolicyCreated(config.ClusterID)
+	if err != nil {
 		return nil, maskAny(err)
+	}
+	if !created {
+		err := tg.NewPKIIssuePolicy(config.ClusterID)
+		if err != nil {
+			return nil, maskAny(err)
+		}
 	}
 
 	// Get the token auth backend to create new tokens.
@@ -108,7 +137,7 @@ func (tg *tokenGenerator) NewPKIIssueTokens(config spec.TokenConfig) ([]string, 
 				"cluster-id": config.ClusterID,
 			},
 			NoParent: true,
-			Policies: []string{policyName},
+			Policies: []string{tg.PKIIssuePolicyName(config.ClusterID)},
 			TTL:      config.TTL,
 		}
 		_, err := tokenAuth.Create(newCreateRequest)

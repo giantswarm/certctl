@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/giantswarm/certctl/service/pki-controller"
+	"github.com/giantswarm/certctl/service/token-generator"
 	"github.com/giantswarm/certctl/service/vault-factory"
 )
 
@@ -73,11 +74,18 @@ func inspectRun(cmd *cobra.Command, args []string) {
 		log.Fatalf("%#v\n", maskAny(err))
 	}
 
-	// Create a PKI controller to setup the cluster's PKI backend including its
-	// root CA and role.
+	// Create a PKI controller to check for PKI backend specific operations.
 	newPKIControllerConfig := pkicontroller.DefaultConfig()
 	newPKIControllerConfig.VaultClient = newVaultClient
 	newPKIController, err := pkicontroller.New(newPKIControllerConfig)
+	if err != nil {
+		log.Fatalf("%#v\n", maskAny(err))
+	}
+
+	// Create a token generator to check for token specific operations.
+	newTokenGeneratorConfig := tokengenerator.DefaultConfig()
+	newTokenGeneratorConfig.VaultClient = newVaultClient
+	newTokenGenerator, err := tokengenerator.New(newTokenGeneratorConfig)
 	if err != nil {
 		log.Fatalf("%#v\n", maskAny(err))
 	}
@@ -90,7 +98,11 @@ func inspectRun(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatalf("%#v\n", maskAny(err))
 	}
-	created, err := newPKIController.IsRoleCreated(newInspectFlags.ClusterID)
+	roleCreated, err := newPKIController.IsRoleCreated(newInspectFlags.ClusterID)
+	if err != nil {
+		log.Fatalf("%#v\n", maskAny(err))
+	}
+	policyCreated, err := newTokenGenerator.IsPKIIssuePolicyCreated(newInspectFlags.ClusterID)
 	if err != nil {
 		log.Fatalf("%#v\n", maskAny(err))
 	}
@@ -99,7 +111,8 @@ func inspectRun(cmd *cobra.Command, args []string) {
 	fmt.Printf("\n")
 	fmt.Printf("    PKI backend mounted: %t\n", mounted)
 	fmt.Printf("    Root CA generated:   %t\n", generated)
-	fmt.Printf("    PKI role created:    %t\n", created)
+	fmt.Printf("    PKI role created:    %t\n", roleCreated)
+	fmt.Printf("    PKI policy created:  %t\n", policyCreated)
 	fmt.Printf("\n")
 	fmt.Printf("Tokens may have been generated for this cluster. Created tokens\n")
 	fmt.Printf("cannot be shown as they are secret. Information about these\n")
