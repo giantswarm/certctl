@@ -65,7 +65,10 @@ func (pc *pkiController) IsCAGenerated(clusterID string) (bool, error) {
 	} else if err != nil {
 		return false, maskAny(err)
 	}
-	if secret.Data["certificate"] == "" || secret.Data["error"] != "" {
+	if certificate, ok := secret.Data["certificate"]; ok && certificate == "" {
+		return false, nil
+	}
+	if err, ok := secret.Data["error"]; ok && err != "" {
 		return false, nil
 	}
 
@@ -104,12 +107,26 @@ func (pc *pkiController) IsRoleCreated(clusterID string) (bool, error) {
 	} else if err != nil {
 		return false, maskAny(err)
 	}
-	_, ok := secret.Data[pc.PKIRoleName(clusterID)]
-	if !ok {
+
+	// In case there is not a single role for this PKI backend, secret is nil.
+	if secret == nil {
 		return false, nil
 	}
 
-	return true, nil
+	// When listing roles a list of role names is returned. Here we iterate over
+	// this list and if we find the desired role name, it means the role has
+	// already bee created.
+	if keys, ok := secret.Data["keys"]; ok {
+		if list, ok := keys.([]interface{}); ok {
+			for _, k := range list {
+				if s, ok := k.(string); ok && s == pc.PKIRoleName(clusterID) {
+					return true, nil
+				}
+			}
+		}
+	}
+
+	return false, nil
 }
 
 func (pc *pkiController) PKIRoleName(clusterID string) string {
