@@ -52,17 +52,34 @@ type tokenGenerator struct {
 	Config
 }
 
+func (tg *tokenGenerator) DeletePKIIssuePolicy(clusterID string) error {
+	// Get the system backend for policy operations.
+	sysBackend := tg.VaultClient.Sys()
+
+	// Delete the policy by name if it is created.
+	created, err := tg.IsPKIIssuePolicyCreated(clusterID)
+	if err != nil {
+		return maskAny(err)
+	}
+	if created {
+		err := sysBackend.DeletePolicy(tg.PKIIssuePolicyName(clusterID))
+		if err != nil {
+			return maskAny(err)
+		}
+	}
+
+	return nil
+}
+
 func (tg *tokenGenerator) IsPKIIssuePolicyCreated(clusterID string) (bool, error) {
 	// Get the system backend for policy operations.
 	sysBackend := tg.VaultClient.Sys()
 
-	// Check if the policy is already there. In case there is already a policy we
-	// do not need to recreate/update it.
+	// Check if the policy is already there.
 	policies, err := sysBackend.ListPolicies()
 	if err != nil {
 		return false, maskAny(err)
 	}
-
 	for _, p := range policies {
 		if p == tg.PKIIssuePolicyName(clusterID) {
 			return true, nil
