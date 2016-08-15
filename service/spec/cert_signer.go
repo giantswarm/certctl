@@ -11,6 +11,9 @@ type IssueConfig struct {
 	// that is being requested.
 	CommonName string `json:"common_name"`
 
+	// IPSANs represents a comma separate lists of IPs.
+	IPSANs string `json:"ip_sans"`
+
 	// TTL configures the time to live for the requested certificate. This is a
 	// golang time string with the allowed units s, m and h.
 	TTL string `json:"ttl"`
