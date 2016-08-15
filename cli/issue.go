@@ -122,15 +122,15 @@ func issueRun(cmd *cobra.Command, args []string) {
 		log.Fatalf("%#v\n", maskAny(err))
 	}
 
-	err = ioutil.WriteFile(newIssueFlags.CrtFilePath, []byte(crt), os.FileMode(0600))
+	err = ioutil.WriteFile(newIssueFlags.CrtFilePath, []byte(crt), os.FileMode(0644))
 	if err != nil {
 		log.Fatalf("%#v\n", maskAny(err))
 	}
-	err = ioutil.WriteFile(newIssueFlags.KeyFilePath, []byte(key), os.FileMode(0600))
+	err = ioutil.WriteFile(newIssueFlags.KeyFilePath, []byte(key), os.FileMode(0644))
 	if err != nil {
 		log.Fatalf("%#v\n", maskAny(err))
 	}
-	err = ioutil.WriteFile(newIssueFlags.CAFilePath, []byte(ca), os.FileMode(0600))
+	err = ioutil.WriteFile(newIssueFlags.CAFilePath, []byte(ca), os.FileMode(0644))
 	if err != nil {
 		log.Fatalf("%#v\n", maskAny(err))
 	}
