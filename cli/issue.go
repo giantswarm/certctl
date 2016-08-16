@@ -23,6 +23,7 @@ type issueFlags struct {
 
 	// Certificate
 	CommonName string
+	IPSANs     string
 	TTL        string
 
 	// Path
@@ -49,7 +50,8 @@ func init() {
 
 	issueCmd.Flags().StringVar(&newIssueFlags.ClusterID, "cluster-id", "", "Cluster ID used to generate a new signed certificate for.")
 
-	issueCmd.Flags().StringVar(&newIssueFlags.CommonName, "common-name", "", "Common name used to generate a new root CA for.")
+	issueCmd.Flags().StringVar(&newIssueFlags.CommonName, "common-name", "", "Common name used to generate a new signed certificate for.")
+	issueCmd.Flags().StringVar(&newIssueFlags.IPSANs, "ip-sans", "", "IPSANs used to generate a new signed certificate for.")
 	issueCmd.Flags().StringVar(&newIssueFlags.TTL, "ttl", "8640h", "TTL used to generate a new signed certificate for.") // 1 year
 
 	issueCmd.Flags().StringVar(&newIssueFlags.CrtFilePath, "crt-file", "", "File path used to write the generated public key to.")
@@ -65,7 +67,10 @@ func issueValidate(newIssueFlags *issueFlags) error {
 		return maskAnyf(invalidConfigError, "cluster ID must not be empty")
 	}
 	if newIssueFlags.CommonName == "" {
-		return maskAnyf(invalidConfigError, "common name must not be empty")
+		return maskAnyf(invalidConfigError, "--common-name must not be empty")
+	}
+	if newIssueFlags.IPSANs == "" {
+		return maskAnyf(invalidConfigError, "--ip-sans must not be empty")
 	}
 	if newIssueFlags.CrtFilePath == "" {
 		return maskAnyf(invalidConfigError, "--crt-file name must not be empty")
@@ -115,6 +120,7 @@ func issueRun(cmd *cobra.Command, args []string) {
 	newIssueConfig := spec.IssueConfig{
 		ClusterID:  newIssueFlags.ClusterID,
 		CommonName: newIssueFlags.CommonName,
+		IPSANs:     newIssueFlags.IPSANs,
 		TTL:        newIssueFlags.TTL,
 	}
 	crt, key, ca, err := newCertSigner.Issue(newIssueConfig)

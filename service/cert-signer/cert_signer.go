@@ -61,6 +61,7 @@ func (cs *certSigner) Issue(config spec.IssueConfig) (string, string, string, er
 	data := map[string]interface{}{
 		"ttl":         config.TTL,
 		"common_name": config.CommonName,
+		"ip_sans":     config.IPSANs,
 	}
 	secret, err := logicalStore.Write(cs.SignedPath(config.ClusterID), data)
 	if err != nil {
