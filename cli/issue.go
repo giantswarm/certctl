@@ -123,7 +123,7 @@ func issueRun(cmd *cobra.Command, args []string) {
 		IPSANs:     newIssueFlags.IPSANs,
 		TTL:        newIssueFlags.TTL,
 	}
-	crt, key, ca, err := newCertSigner.Issue(newIssueConfig)
+	crt, key, ca, serial, err := newCertSigner.Issue(newIssueConfig)
 	if err != nil {
 		log.Fatalf("%#v\n", maskAny(err))
 	}
@@ -141,6 +141,10 @@ func issueRun(cmd *cobra.Command, args []string) {
 		log.Fatalf("%#v\n", maskAny(err))
 	}
 
+	fmt.Printf("Issued new signed certificate with the following serial number.\n")
+	fmt.Printf("\n")
+	fmt.Printf("    %s\n", serial)
+	fmt.Printf("\n")
 	fmt.Printf("Public key written to '%s'.\n", newIssueFlags.CrtFilePath)
 	fmt.Printf("Private key written to '%s'.\n", newIssueFlags.KeyFilePath)
 	fmt.Printf("Root CA written to '%s'.\n", newIssueFlags.CAFilePath)

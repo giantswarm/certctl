@@ -52,7 +52,7 @@ type certSigner struct {
 	Config
 }
 
-func (cs *certSigner) Issue(config spec.IssueConfig) (string, string, string, error) {
+func (cs *certSigner) Issue(config spec.IssueConfig) (string, string, string, string, error) {
 	// Create a client for issuing a new signed certificate.
 	logicalStore := cs.VaultClient.Logical()
 
@@ -65,27 +65,32 @@ func (cs *certSigner) Issue(config spec.IssueConfig) (string, string, string, er
 	}
 	secret, err := logicalStore.Write(cs.SignedPath(config.ClusterID), data)
 	if err != nil {
-		return "", "", "", maskAny(err)
+		return "", "", "", "", maskAny(err)
 	}
 
 	// Collect the certificate data from the secret response.
 	vCrt, ok := secret.Data["certificate"]
 	if !ok {
-		return "", "", "", maskAnyf(keyPairNotFoundError, "public key missing")
+		return "", "", "", "", maskAnyf(keyPairNotFoundError, "public key missing")
 	}
 	crt := vCrt.(string)
 	vKey, ok := secret.Data["private_key"]
 	if !ok {
-		return "", "", "", maskAnyf(keyPairNotFoundError, "private key missing")
+		return "", "", "", "", maskAnyf(keyPairNotFoundError, "private key missing")
 	}
 	key := vKey.(string)
 	vCA, ok := secret.Data["issuing_ca"]
 	if !ok {
-		return "", "", "", maskAnyf(keyPairNotFoundError, "root CA missing")
+		return "", "", "", "", maskAnyf(keyPairNotFoundError, "root CA missing")
 	}
 	ca := vCA.(string)
+	vSerial, ok := secret.Data["serial_number"]
+	if !ok {
+		return "", "", "", "", maskAnyf(keyPairNotFoundError, "root CA missing")
+	}
+	serial := vSerial.(string)
 
-	return crt, key, ca, nil
+	return crt, key, ca, serial, nil
 }
 
 func (cs *certSigner) SignedPath(clusterID string) string {
