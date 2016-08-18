@@ -19,13 +19,18 @@ type IssueConfig struct {
 	TTL string `json:"ttl"`
 }
 
+type IssueResponse struct {
+	Certificate  string `json:"certificate"`
+	PrivateKey   string `json:"private_key"`
+	IssuingCA    string `json:"issuing_ca"`
+	SerialNumber string `json:"serial_number"`
+}
+
 // CertSigner manages the process of issuing new certificate key pairs
 type CertSigner interface {
 	// Issue generates a new signed certificate with respect to the given
-	// configuration. Return values are the public key of the signed certificate,
-	// the private key of the signed certificate, the issuing root CA and the
-	// serial number of the issued certificate, in this order.
-	Issue(config IssueConfig) (string, string, string, string, error)
+	// configuration.
+	Issue(config IssueConfig) (IssueResponse, error)
 
 	// SignedPath returns the path under which a certificate can be generated.
 	// This is very specific to Vault. The path structure is the following. See
