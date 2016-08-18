@@ -123,24 +123,28 @@ func issueRun(cmd *cobra.Command, args []string) {
 		IPSANs:     newIssueFlags.IPSANs,
 		TTL:        newIssueFlags.TTL,
 	}
-	crt, key, ca, err := newCertSigner.Issue(newIssueConfig)
+	newIssueResponse, err := newCertSigner.Issue(newIssueConfig)
 	if err != nil {
 		log.Fatalf("%#v\n", maskAny(err))
 	}
 
-	err = ioutil.WriteFile(newIssueFlags.CrtFilePath, []byte(crt), os.FileMode(0644))
+	err = ioutil.WriteFile(newIssueFlags.CrtFilePath, []byte(newIssueResponse.Certificate), os.FileMode(0644))
 	if err != nil {
 		log.Fatalf("%#v\n", maskAny(err))
 	}
-	err = ioutil.WriteFile(newIssueFlags.KeyFilePath, []byte(key), os.FileMode(0644))
+	err = ioutil.WriteFile(newIssueFlags.KeyFilePath, []byte(newIssueResponse.PrivateKey), os.FileMode(0644))
 	if err != nil {
 		log.Fatalf("%#v\n", maskAny(err))
 	}
-	err = ioutil.WriteFile(newIssueFlags.CAFilePath, []byte(ca), os.FileMode(0644))
+	err = ioutil.WriteFile(newIssueFlags.CAFilePath, []byte(newIssueResponse.IssuingCA), os.FileMode(0644))
 	if err != nil {
 		log.Fatalf("%#v\n", maskAny(err))
 	}
 
+	fmt.Printf("Issued new signed certificate with the following serial number.\n")
+	fmt.Printf("\n")
+	fmt.Printf("    %s\n", newIssueResponse.SerialNumber)
+	fmt.Printf("\n")
 	fmt.Printf("Public key written to '%s'.\n", newIssueFlags.CrtFilePath)
 	fmt.Printf("Private key written to '%s'.\n", newIssueFlags.KeyFilePath)
 	fmt.Printf("Root CA written to '%s'.\n", newIssueFlags.CAFilePath)
