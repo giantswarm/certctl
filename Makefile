@@ -6,7 +6,7 @@ PROJECT_PATH := "$(BUILD_PATH)/src/github.com/giantswarm"
 
 BIN=$(PROJECT)
 
-.PHONY: clean get-deps deps run-tests fmt
+.PHONY: clean get-deps deps run-tests fmt install
 
 GOPATH := $(BUILD_PATH)
 
@@ -68,3 +68,6 @@ run-tests:
 
 fmt:
 	gofmt -l -w .
+
+install: $(BIN)
+	cp $(BIN) /usr/local/bin/
