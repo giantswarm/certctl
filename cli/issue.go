@@ -69,9 +69,6 @@ func issueValidate(newIssueFlags *issueFlags) error {
 	if newIssueFlags.CommonName == "" {
 		return maskAnyf(invalidConfigError, "--common-name must not be empty")
 	}
-	if newIssueFlags.IPSANs == "" {
-		return maskAnyf(invalidConfigError, "--ip-sans must not be empty")
-	}
 	if newIssueFlags.CrtFilePath == "" {
 		return maskAnyf(invalidConfigError, "--crt-file name must not be empty")
 	}
