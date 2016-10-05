@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 
@@ -125,17 +126,21 @@ func issueRun(cmd *cobra.Command, args []string) {
 		log.Fatalf("%#v\n", maskAny(err))
 	}
 
-	err = ioutil.WriteFile(newIssueFlags.CrtFilePath, []byte(newIssueResponse.Certificate), os.FileMode(0644))
-	if err != nil {
-		log.Fatalf("%#v\n", maskAny(err))
+	filePaths := []string{
+		newIssueFlags.CrtFilePath,
+		newIssueFlags.KeyFilePath,
+		newIssueFlags.CAFilePath,
 	}
-	err = ioutil.WriteFile(newIssueFlags.KeyFilePath, []byte(newIssueResponse.PrivateKey), os.FileMode(0644))
-	if err != nil {
-		log.Fatalf("%#v\n", maskAny(err))
-	}
-	err = ioutil.WriteFile(newIssueFlags.CAFilePath, []byte(newIssueResponse.IssuingCA), os.FileMode(0644))
-	if err != nil {
-		log.Fatalf("%#v\n", maskAny(err))
+
+	for _, p := range filePaths {
+		err = os.MkdirAll(filepath.Dir(p), os.FileMode(0655))
+		if err != nil {
+			log.Fatalf("%#v\n", maskAny(err))
+		}
+		err = ioutil.WriteFile(p, []byte(newIssueResponse.IssuingCA), os.FileMode(0644))
+		if err != nil {
+			log.Fatalf("%#v\n", maskAny(err))
+		}
 	}
 
 	fmt.Printf("Issued new signed certificate with the following serial number.\n")
