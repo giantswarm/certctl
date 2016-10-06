@@ -126,21 +126,29 @@ func issueRun(cmd *cobra.Command, args []string) {
 		log.Fatalf("%#v\n", maskAny(err))
 	}
 
-	filePaths := []string{
-		newIssueFlags.CrtFilePath,
-		newIssueFlags.KeyFilePath,
-		newIssueFlags.CAFilePath,
+	err = os.MkdirAll(filepath.Dir(newIssueFlags.CrtFilePath), os.FileMode(0744))
+	if err != nil {
+		log.Fatalf("%#v\n", maskAny(err))
 	}
-
-	for _, p := range filePaths {
-		err = os.MkdirAll(filepath.Dir(p), os.FileMode(0655))
-		if err != nil {
-			log.Fatalf("%#v\n", maskAny(err))
-		}
-		err = ioutil.WriteFile(p, []byte(newIssueResponse.IssuingCA), os.FileMode(0644))
-		if err != nil {
-			log.Fatalf("%#v\n", maskAny(err))
-		}
+	err = ioutil.WriteFile(newIssueFlags.CrtFilePath, []byte(newIssueResponse.Certificate), os.FileMode(0644))
+	if err != nil {
+		log.Fatalf("%#v\n", maskAny(err))
+	}
+	err = os.MkdirAll(filepath.Dir(newIssueFlags.KeyFilePath), os.FileMode(0744))
+	if err != nil {
+		log.Fatalf("%#v\n", maskAny(err))
+	}
+	err = ioutil.WriteFile(newIssueFlags.KeyFilePath, []byte(newIssueResponse.PrivateKey), os.FileMode(0644))
+	if err != nil {
+		log.Fatalf("%#v\n", maskAny(err))
+	}
+	err = os.MkdirAll(filepath.Dir(newIssueFlags.CAFilePath), os.FileMode(0744))
+	if err != nil {
+		log.Fatalf("%#v\n", maskAny(err))
+	}
+	err = ioutil.WriteFile(newIssueFlags.CAFilePath, []byte(newIssueResponse.IssuingCA), os.FileMode(0644))
+	if err != nil {
+		log.Fatalf("%#v\n", maskAny(err))
 	}
 
 	fmt.Printf("Issued new signed certificate with the following serial number.\n")
