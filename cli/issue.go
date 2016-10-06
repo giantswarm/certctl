@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 
@@ -125,11 +126,23 @@ func issueRun(cmd *cobra.Command, args []string) {
 		log.Fatalf("%#v\n", maskAny(err))
 	}
 
+	err = os.MkdirAll(filepath.Dir(newIssueFlags.CrtFilePath), os.FileMode(0744))
+	if err != nil {
+		log.Fatalf("%#v\n", maskAny(err))
+	}
 	err = ioutil.WriteFile(newIssueFlags.CrtFilePath, []byte(newIssueResponse.Certificate), os.FileMode(0644))
 	if err != nil {
 		log.Fatalf("%#v\n", maskAny(err))
 	}
+	err = os.MkdirAll(filepath.Dir(newIssueFlags.KeyFilePath), os.FileMode(0744))
+	if err != nil {
+		log.Fatalf("%#v\n", maskAny(err))
+	}
 	err = ioutil.WriteFile(newIssueFlags.KeyFilePath, []byte(newIssueResponse.PrivateKey), os.FileMode(0644))
+	if err != nil {
+		log.Fatalf("%#v\n", maskAny(err))
+	}
+	err = os.MkdirAll(filepath.Dir(newIssueFlags.CAFilePath), os.FileMode(0744))
 	if err != nil {
 		log.Fatalf("%#v\n", maskAny(err))
 	}
