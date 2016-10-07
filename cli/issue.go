@@ -142,7 +142,7 @@ func issueRun(cmd *cobra.Command, args []string) {
 	{
 	Attempt:
 		for {
-			log.Fatalf("Attempt to write certificate data to the file system.\n")
+			log.Printf("Attempt to write certificate data to the file system.\n")
 
 			attemptCount++
 			if attemptCount > newIssueFlags.FSWriteAttempts {
