@@ -64,8 +64,8 @@ func (cs *certSigner) Issue(config spec.IssueConfig) (spec.IssueResponse, error)
 		"ip_sans":     config.IPSANs,
 		"alt_names":   config.AltNames,
 	}
-	fmt.Println("debug", data)
-	secret, err := logicalStore.Write(cs.SignedPath(config.ClusterID), data)
+	
+        secret, err := logicalStore.Write(cs.SignedPath(config.ClusterID), data)
 	if err != nil {
 		return spec.IssueResponse{}, maskAny(err)
 	}
