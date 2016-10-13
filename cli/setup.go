@@ -25,7 +25,7 @@ type setupFlags struct {
 	AllowedDomains string
 	CommonName     string
 	CATTL          string
-	AllowBareDomains string
+	AllowBareDomains bool
 
 	// Token
 	NumTokens int
@@ -53,7 +53,7 @@ func init() {
 	setupCmd.Flags().StringVar(&newSetupFlags.AllowedDomains, "allowed-domains", "", "Comma separated domains allowed to authenticate against the cluster's root CA.")
 	setupCmd.Flags().StringVar(&newSetupFlags.CommonName, "common-name", "", "Common name used to generate a new root CA for.")
 	setupCmd.Flags().StringVar(&newSetupFlags.CATTL, "ca-ttl", "86400h", "TTL used to generate a new root CA.") // 10 years
-	setupCmd.Flags().StringVar(&newSetupFlags.AllowBareDomains, "allow-bare-domains", "false", "Allow issuying certs for bare domains.")
+	setupCmd.Flags().BoolVar(&newSetupFlags.AllowBareDomains, "allow-bare-domains", false, "Allow issuing certs for bare domains. (Default false)")
 
 
 	setupCmd.Flags().IntVar(&newSetupFlags.NumTokens, "num-tokens", 1, "Number of tokens to generate.")

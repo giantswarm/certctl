@@ -14,7 +14,7 @@ type IssueConfig struct {
 	// IPSANs represents a comma separate lists of IPs.
 	IPSANs string `json:"ip_sans"`
 
-	// AltNames names represents a comma separate list of alternative names
+	// AltNames names represents a comma separate list of alternative names.
 	AltNames string `json:"alt_names"`
 
 	// TTL configures the time to live for the requested certificate. This is a
