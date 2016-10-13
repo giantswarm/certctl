@@ -25,6 +25,7 @@ type issueFlags struct {
 	// Certificate
 	CommonName string
 	IPSANs     string
+	AltNames   string
 	TTL        string
 
 	// Path
@@ -53,6 +54,7 @@ func init() {
 
 	issueCmd.Flags().StringVar(&newIssueFlags.CommonName, "common-name", "", "Common name used to generate a new signed certificate for.")
 	issueCmd.Flags().StringVar(&newIssueFlags.IPSANs, "ip-sans", "", "IPSANs used to generate a new signed certificate for.")
+	issueCmd.Flags().StringVar(&newIssueFlags.AltNames, "alt-names", "", "Alternative names used to generate a new signed certificate for.")
 	issueCmd.Flags().StringVar(&newIssueFlags.TTL, "ttl", "8640h", "TTL used to generate a new signed certificate for.") // 1 year
 
 	issueCmd.Flags().StringVar(&newIssueFlags.CrtFilePath, "crt-file", "", "File path used to write the generated public key to.")
@@ -119,6 +121,7 @@ func issueRun(cmd *cobra.Command, args []string) {
 		ClusterID:  newIssueFlags.ClusterID,
 		CommonName: newIssueFlags.CommonName,
 		IPSANs:     newIssueFlags.IPSANs,
+		AltNames:   newIssueFlags.AltNames,
 		TTL:        newIssueFlags.TTL,
 	}
 	newIssueResponse, err := newCertSigner.Issue(newIssueConfig)

@@ -208,7 +208,9 @@ func (pc *pkiController) SetupPKIBackend(config spec.PKIConfig) error {
 			"allowed_domains":  config.AllowedDomains,
 			"allow_subdomains": "true",
 			"ttl":              config.TTL,
+			"allow_bare_domains": config.AllowBareDomains,
 		}
+
 		_, err = logicalBackend.Write(pc.WriteRolePath(config.ClusterID), data)
 		if err != nil {
 			return maskAny(err)
