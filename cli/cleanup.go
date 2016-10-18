@@ -99,7 +99,7 @@ func cleanupRun(cmd *cobra.Command, args []string) {
 		log.Fatalf("%#v\n", maskAny(err))
 	}
 
-	fmt.Printf("Inspecting cluster for ID '%s':\n", newCleanupFlags.ClusterID)
+	fmt.Printf("Cleaning up cluster for ID '%s':\n", newCleanupFlags.ClusterID)
 	fmt.Printf("\n")
 	fmt.Printf("    - PKI backend unmounted\n")
 	fmt.Printf("    - Root CA deleted\n")
