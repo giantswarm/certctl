@@ -22,9 +22,9 @@ type setupFlags struct {
 	ClusterID string
 
 	// PKI
-	AllowedDomains string
-	CommonName     string
-	CATTL          string
+	AllowedDomains   string
+	CommonName       string
+	CATTL            string
 	AllowBareDomains bool
 
 	// Token
@@ -54,7 +54,6 @@ func init() {
 	setupCmd.Flags().StringVar(&newSetupFlags.CommonName, "common-name", "", "Common name used to generate a new root CA for.")
 	setupCmd.Flags().StringVar(&newSetupFlags.CATTL, "ca-ttl", "86400h", "TTL used to generate a new root CA.") // 10 years
 	setupCmd.Flags().BoolVar(&newSetupFlags.AllowBareDomains, "allow-bare-domains", false, "Allow issuing certs for bare domains. (Default false)")
-
 
 	setupCmd.Flags().IntVar(&newSetupFlags.NumTokens, "num-tokens", 1, "Number of tokens to generate.")
 	setupCmd.Flags().StringVar(&newSetupFlags.TokenTTL, "token-ttl", "720h", "TTL used to generate new tokens.")
@@ -119,11 +118,11 @@ func setupRun(cmd *cobra.Command, args []string) {
 
 	// Setup PKI backend for cluster.
 	newPKIConfig := spec.PKIConfig{
-		AllowedDomains:    newSetupFlags.AllowedDomains,
-		ClusterID:         newSetupFlags.ClusterID,
-		CommonName:        newSetupFlags.CommonName,
-		TTL:               newSetupFlags.CATTL,
-		AllowBareDomains:  newSetupFlags.AllowBareDomains,
+		AllowedDomains:   newSetupFlags.AllowedDomains,
+		ClusterID:        newSetupFlags.ClusterID,
+		CommonName:       newSetupFlags.CommonName,
+		TTL:              newSetupFlags.CATTL,
+		AllowBareDomains: newSetupFlags.AllowBareDomains,
 	}
 	err = newPKIController.SetupPKIBackend(newPKIConfig)
 	if err != nil {

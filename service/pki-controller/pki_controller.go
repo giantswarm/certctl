@@ -205,9 +205,9 @@ func (pc *pkiController) SetupPKIBackend(config spec.PKIConfig) error {
 	}
 	if !created {
 		data := map[string]interface{}{
-			"allowed_domains":  config.AllowedDomains,
-			"allow_subdomains": "true",
-			"ttl":              config.TTL,
+			"allowed_domains":    config.AllowedDomains,
+			"allow_subdomains":   "true",
+			"ttl":                config.TTL,
 			"allow_bare_domains": config.AllowBareDomains,
 		}
 
