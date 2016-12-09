@@ -1,4 +1,6 @@
-FROM busybox:ubuntu-14.04
+FROM alpine:3.4
+
+RUN apk --no-cache add ca-certificates && update-ca-certificates
 
 RUN mkdir -p /opt
 ADD ./certctl /opt/certctl
