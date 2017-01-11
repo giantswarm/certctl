@@ -3,6 +3,14 @@ package pki
 // CreateConfig is used to configure the setup of a PKI backend done by the
 // Service.
 type CreateConfig struct {
+	// If set, clients can request certificates matching the value of the actual
+	// domains themselves; e.g. if a configured domain set with allowed_domains
+	// is example.com, this allows clients to actually request a certificate
+	// containing the name example.com as one of the DNS values on the final
+	// certificate. In some scenarios, this can be considered a security risk.
+	// Defaults to false.
+	AllowBareDomains bool `json:"allow_bare_domains"`
+
 	// AllowedDomains represents a comma separate list of valid domain names the
 	// generated certificate authority is valid for.
 	AllowedDomains string `json:"allowed_domains"`
@@ -21,14 +29,6 @@ type CreateConfig struct {
 	// TTL configures the time to live for the root CA being set up. This is a
 	// golang time string with the allowed units s, m and h.
 	TTL string `json:"ttl"`
-
-	// If set, clients can request certificates matching the value of the actual
-	// domains themselves; e.g. if a configured domain set with allowed_domains
-	// is example.com, this allows clients to actually request a certificate
-	// containing the name example.com as one of the DNS values on the final
-	// certificate. In some scenarios, this can be considered a security risk.
-	// Defaults to false.
-	AllowBareDomains bool `json:"allow_bare_domains"`
 }
 
 // Service manages the setup of Vault's PKI backends and all other required
