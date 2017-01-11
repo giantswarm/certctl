@@ -7,7 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/giantswarm/certctl/service/pki-controller"
+	"github.com/giantswarm/certctl/service/pki"
 	"github.com/giantswarm/certctl/service/token"
 	"github.com/giantswarm/certctl/service/vault-factory"
 )
@@ -75,11 +75,14 @@ func inspectRun(cmd *cobra.Command, args []string) {
 	}
 
 	// Create a PKI controller to check for PKI backend specific operations.
-	newPKIControllerConfig := pkicontroller.DefaultConfig()
-	newPKIControllerConfig.VaultClient = newVaultClient
-	newPKIController, err := pkicontroller.New(newPKIControllerConfig)
-	if err != nil {
-		log.Fatalf("%#v\n", maskAny(err))
+	var pkiService pki.Service
+	{
+		pkiConfig := pki.DefaultServiceConfig()
+		pkiConfig.VaultClient = newVaultClient
+		pkiService, err = pki.NewService(pkiConfig)
+		if err != nil {
+			log.Fatalf("%#v\n", maskAny(err))
+		}
 	}
 
 	// Create a token generator to check for token specific operations.
@@ -93,15 +96,15 @@ func inspectRun(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	mounted, err := newPKIController.IsPKIMounted(newInspectFlags.ClusterID)
+	mounted, err := pkiService.IsMounted(newInspectFlags.ClusterID)
 	if err != nil {
 		log.Fatalf("%#v\n", maskAny(err))
 	}
-	generated, err := newPKIController.IsCAGenerated(newInspectFlags.ClusterID)
+	generated, err := pkiService.IsCAGenerated(newInspectFlags.ClusterID)
 	if err != nil {
 		log.Fatalf("%#v\n", maskAny(err))
 	}
-	roleCreated, err := newPKIController.IsRoleCreated(newInspectFlags.ClusterID)
+	roleCreated, err := pkiService.IsRoleCreated(newInspectFlags.ClusterID)
 	if err != nil {
 		log.Fatalf("%#v\n", maskAny(err))
 	}
