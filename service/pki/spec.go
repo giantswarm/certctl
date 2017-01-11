@@ -1,8 +1,8 @@
-package spec
+package pki
 
-// PKIConfig is used to configure the setup of a PKI backend done by the
-// PKIController.
-type PKIConfig struct {
+// CreateConfig is used to configure the setup of a PKI backend done by the
+// Service.
+type CreateConfig struct {
 	// AllowedDomains represents a comma separate list of valid domain names the
 	// generated certificate authority is valid for.
 	AllowedDomains string `json:"allowed_domains"`
@@ -31,33 +31,31 @@ type PKIConfig struct {
 	AllowBareDomains bool `json:"allow_bare_domains"`
 }
 
-// PKIController manages the setup of Vault's PKI backends and all other
-// required steps necessary to be done.
-type PKIController interface {
+// Service manages the setup of Vault's PKI backends and all other required
+// steps necessary to be done.
+type Service interface {
 	// PKI management.
 
-	// DeletePKIBackend removes the PKI backend associated wit the given cluster
-	// ID.
-	DeletePKIBackend(clusterID string) error
+	// Create sets up a Vault PKI backend according to the given configuration.
+	Create(config CreateConfig) error
+
+	// Delete removes the PKI backend associated wit the given cluster ID.
+	Delete(clusterID string) error
 
 	// IsCAGenerated checks whether the root CA associated with the given cluster
 	// ID is generated.
 	IsCAGenerated(clusterID string) (bool, error)
 
-	// IsPKIMounted checks whether the PKI backend associated with the given
+	// IsMounted checks whether the PKI backend associated with the given
 	// cluster ID is mounted.
-	IsPKIMounted(clusterID string) (bool, error)
+	IsMounted(clusterID string) (bool, error)
 
 	// IsRoleCreated checks whether the PKI role associated with the given
 	// cluster ID is created.
 	IsRoleCreated(clusterID string) (bool, error)
 
-	// PKIRoleName returns the name used to register the PKI backend's role.
-	PKIRoleName(clusterID string) string
-
-	// SetupPKIBackend sets up a Vault PKI backend according to the given
-	// configuration.
-	SetupPKIBackend(config PKIConfig) error
+	// RoleName returns the name used to register the PKI backend's role.
+	RoleName(clusterID string) string
 
 	// Path management.
 

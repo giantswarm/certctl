@@ -7,8 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/giantswarm/certctl/service/pki-controller"
-	"github.com/giantswarm/certctl/service/spec"
+	"github.com/giantswarm/certctl/service/pki"
 	"github.com/giantswarm/certctl/service/token"
 	"github.com/giantswarm/certctl/service/vault-factory"
 )
@@ -101,11 +100,14 @@ func setupRun(cmd *cobra.Command, args []string) {
 
 	// Create a PKI controller to setup the cluster's PKI backend including its
 	// root CA and role.
-	newPKIControllerConfig := pkicontroller.DefaultConfig()
-	newPKIControllerConfig.VaultClient = newVaultClient
-	newPKIController, err := pkicontroller.New(newPKIControllerConfig)
-	if err != nil {
-		log.Fatalf("%#v\n", maskAny(err))
+	var pkiService pki.Service
+	{
+		pkiConfig := pki.DefaultServiceConfig()
+		pkiConfig.VaultClient = newVaultClient
+		pkiService, err = pki.NewService(pkiConfig)
+		if err != nil {
+			log.Fatalf("%#v\n", maskAny(err))
+		}
 	}
 
 	// Create a token generator to create new tokens for the current cluster.
@@ -120,16 +122,18 @@ func setupRun(cmd *cobra.Command, args []string) {
 	}
 
 	// Setup PKI backend for cluster.
-	newPKIConfig := spec.PKIConfig{
-		AllowedDomains:   newSetupFlags.AllowedDomains,
-		ClusterID:        newSetupFlags.ClusterID,
-		CommonName:       newSetupFlags.CommonName,
-		TTL:              newSetupFlags.CATTL,
-		AllowBareDomains: newSetupFlags.AllowBareDomains,
-	}
-	err = newPKIController.SetupPKIBackend(newPKIConfig)
-	if err != nil {
-		log.Fatalf("%#v\n", maskAny(err))
+	{
+		createConfig := pki.CreateConfig{
+			AllowedDomains:   newSetupFlags.AllowedDomains,
+			ClusterID:        newSetupFlags.ClusterID,
+			CommonName:       newSetupFlags.CommonName,
+			TTL:              newSetupFlags.CATTL,
+			AllowBareDomains: newSetupFlags.AllowBareDomains,
+		}
+		err = pkiService.Create(createConfig)
+		if err != nil {
+			log.Fatalf("%#v\n", maskAny(err))
+		}
 	}
 
 	// Generate tokens for the cluster VMs.
