@@ -1,4 +1,4 @@
-package tokengenerator
+package token
 
 import (
 	"bytes"
