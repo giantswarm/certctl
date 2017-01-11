@@ -9,7 +9,7 @@ import (
 
 	"github.com/giantswarm/certctl/service/pki-controller"
 	"github.com/giantswarm/certctl/service/spec"
-	"github.com/giantswarm/certctl/service/token-generator"
+	"github.com/giantswarm/certctl/service/token"
 	"github.com/giantswarm/certctl/service/vault-factory"
 )
 
@@ -109,11 +109,14 @@ func setupRun(cmd *cobra.Command, args []string) {
 	}
 
 	// Create a token generator to create new tokens for the current cluster.
-	newTokenGeneratorConfig := tokengenerator.DefaultConfig()
-	newTokenGeneratorConfig.VaultClient = newVaultClient
-	newTokenGenerator, err := tokengenerator.New(newTokenGeneratorConfig)
-	if err != nil {
-		log.Fatalf("%#v\n", maskAny(err))
+	var tokenService token.Service
+	{
+		tokenConfig := token.DefaultServiceConfig()
+		tokenConfig.VaultClient = newVaultClient
+		tokenService, err = token.NewService(tokenConfig)
+		if err != nil {
+			log.Fatalf("%#v\n", maskAny(err))
+		}
 	}
 
 	// Setup PKI backend for cluster.
@@ -130,14 +133,17 @@ func setupRun(cmd *cobra.Command, args []string) {
 	}
 
 	// Generate tokens for the cluster VMs.
-	newTokenConfig := spec.TokenConfig{
-		ClusterID: newSetupFlags.ClusterID,
-		Num:       newSetupFlags.NumTokens,
-		TTL:       newSetupFlags.TokenTTL,
-	}
-	tokens, err := newTokenGenerator.NewPKIIssueTokens(newTokenConfig)
-	if err != nil {
-		log.Fatalf("%#v\n", maskAny(err))
+	var tokens []string
+	{
+		createConfig := token.CreateConfig{
+			ClusterID: newSetupFlags.ClusterID,
+			Num:       newSetupFlags.NumTokens,
+			TTL:       newSetupFlags.TokenTTL,
+		}
+		tokens, err = tokenService.Create(createConfig)
+		if err != nil {
+			log.Fatalf("%#v\n", maskAny(err))
+		}
 	}
 
 	fmt.Printf("Set up cluster for ID '%s':\n", newSetupFlags.ClusterID)

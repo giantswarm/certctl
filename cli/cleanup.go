@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/giantswarm/certctl/service/pki-controller"
-	"github.com/giantswarm/certctl/service/token-generator"
+	"github.com/giantswarm/certctl/service/token"
 	"github.com/giantswarm/certctl/service/vault-factory"
 )
 
@@ -83,18 +83,21 @@ func cleanupRun(cmd *cobra.Command, args []string) {
 	}
 
 	// Create a token generator to cleanup token specific operations.
-	newTokenGeneratorConfig := tokengenerator.DefaultConfig()
-	newTokenGeneratorConfig.VaultClient = newVaultClient
-	newTokenGenerator, err := tokengenerator.New(newTokenGeneratorConfig)
-	if err != nil {
-		log.Fatalf("%#v\n", maskAny(err))
+	var tokenService token.Service
+	{
+		tokenConfig := token.DefaultServiceConfig()
+		tokenConfig.VaultClient = newVaultClient
+		tokenService, err = token.NewService(tokenConfig)
+		if err != nil {
+			log.Fatalf("%#v\n", maskAny(err))
+		}
 	}
 
 	err = newPKIController.DeletePKIBackend(newCleanupFlags.ClusterID)
 	if err != nil {
 		log.Fatalf("%#v\n", maskAny(err))
 	}
-	err = newTokenGenerator.DeletePKIIssuePolicy(newCleanupFlags.ClusterID)
+	err = tokenService.DeletePolicy(newCleanupFlags.ClusterID)
 	if err != nil {
 		log.Fatalf("%#v\n", maskAny(err))
 	}
