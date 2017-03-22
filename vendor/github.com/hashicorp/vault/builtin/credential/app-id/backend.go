@@ -17,10 +17,20 @@ func Factory(conf *logical.BackendConfig) (logical.Backend, error) {
 }
 
 func Backend(conf *logical.BackendConfig) (*framework.Backend, error) {
+	// Initialize the salt
+	salt, err := salt.NewSalt(conf.StorageView, &salt.Config{
+		HashFunc: salt.SHA1Hash,
+	})
+	if err != nil {
+		return nil, err
+	}
+
 	var b backend
+	b.Salt = salt
 	b.MapAppId = &framework.PolicyMap{
 		PathMap: framework.PathMap{
 			Name: "app-id",
+			Salt: salt,
 			Schema: map[string]*framework.FieldSchema{
 				"display_name": &framework.FieldSchema{
 					Type:        framework.TypeString,
@@ -38,6 +48,7 @@ func Backend(conf *logical.BackendConfig) (*framework.Backend, error) {
 
 	b.MapUserId = &framework.PathMap{
 		Name: "user-id",
+		Salt: salt,
 		Schema: map[string]*framework.FieldSchema{
 			"cidr_block": &framework.FieldSchema{
 				Type:        framework.TypeString,
@@ -70,11 +81,17 @@ func Backend(conf *logical.BackendConfig) (*framework.Backend, error) {
 		),
 
 		AuthRenew: b.pathLoginRenew,
-
-		Init: b.initialize,
 	}
 
-	b.view = conf.StorageView
+	// Since the salt is new in 0.2, we need to handle this by migrating
+	// any existing keys to use the salt. We can deprecate this eventually,
+	// but for now we want a smooth upgrade experience by automatically
+	// upgrading to use salting.
+	if salt.DidGenerate() {
+		if err := b.upgradeToSalted(conf.StorageView); err != nil {
+			return nil, err
+		}
+	}
 
 	return b.Backend, nil
 }
@@ -83,34 +100,8 @@ type backend struct {
 	*framework.Backend
 
 	Salt      *salt.Salt
-	view      logical.Storage
 	MapAppId  *framework.PolicyMap
 	MapUserId *framework.PathMap
-}
-
-func (b *backend) initialize() error {
-	salt, err := salt.NewSalt(b.view, &salt.Config{
-		HashFunc: salt.SHA1Hash,
-	})
-	if err != nil {
-		return err
-	}
-	b.Salt = salt
-
-	b.MapAppId.Salt = salt
-	b.MapUserId.Salt = salt
-
-	// Since the salt is new in 0.2, we need to handle this by migrating
-	// any existing keys to use the salt. We can deprecate this eventually,
-	// but for now we want a smooth upgrade experience by automatically
-	// upgrading to use salting.
-	if salt.DidGenerate() {
-		if err := b.upgradeToSalted(b.view); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 // upgradeToSalted is used to upgrade the non-salted keys prior to

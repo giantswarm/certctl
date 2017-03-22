@@ -3,7 +3,6 @@ package command
 import (
 	"testing"
 
-	"github.com/hashicorp/vault/api"
 	"github.com/hashicorp/vault/http"
 	"github.com/hashicorp/vault/meta"
 	"github.com/hashicorp/vault/vault"
@@ -35,11 +34,7 @@ func TestAuditList(t *testing.T) {
 	if err != nil {
 		t.Fatalf("err: %#v", err)
 	}
-	if err := client.Sys().EnableAuditWithOptions("foo", &api.EnableAuditOptions{
-		Type:        "noop",
-		Description: "noop",
-		Options:     nil,
-	}); err != nil {
+	if err := client.Sys().EnableAudit("foo", "noop", "", nil); err != nil {
 		t.Fatalf("err: %#v", err)
 	}
 

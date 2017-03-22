@@ -1,13 +1,11 @@
 package pki
 
 import (
-	"crypto/x509"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/fatih/structs"
-	"github.com/hashicorp/vault/helper/parseutil"
 	"github.com/hashicorp/vault/logical"
 	"github.com/hashicorp/vault/logical/framework"
 )
@@ -20,8 +18,8 @@ func pathListRoles(b *backend) *framework.Path {
 			logical.ListOperation: b.pathRoleList,
 		},
 
-		HelpSynopsis:    pathListRolesHelpSyn,
-		HelpDescription: pathListRolesHelpDesc,
+		HelpSynopsis:    pathRoleHelpSyn,
+		HelpDescription: pathRoleHelpDesc,
 	}
 }
 
@@ -149,17 +147,6 @@ certainly want to change this if you adjust
 the key_type.`,
 			},
 
-			"key_usage": &framework.FieldSchema{
-				Type:    framework.TypeString,
-				Default: "DigitalSignature,KeyAgreement,KeyEncipherment",
-				Description: `A comma-separated set of key usages (not extended
-key usages). Valid values can be found at
-https://golang.org/pkg/crypto/x509/#KeyUsage
--- simply drop the "KeyUsage" part of the name.
-To remove all key usages from being set, set
-this value to an empty string.`,
-			},
-
 			"use_csr_common_name": &framework.FieldSchema{
 				Type:    framework.TypeBool,
 				Default: true,
@@ -167,42 +154,6 @@ this value to an empty string.`,
 the common name in the CSR will be used. This
 does *not* include any requested Subject Alternative
 Names. Defaults to true.`,
-			},
-
-			"use_csr_sans": &framework.FieldSchema{
-				Type:    framework.TypeBool,
-				Default: true,
-				Description: `If set, when used with a signing profile,
-the SANs in the CSR will be used. This does *not*
-include the Common Name (cn). Defaults to true.`,
-			},
-
-			"ou": &framework.FieldSchema{
-				Type:    framework.TypeString,
-				Default: "",
-				Description: `If set, the OU (OrganizationalUnit) will be set to
-this value in certificates issued by this role.`,
-			},
-
-			"organization": &framework.FieldSchema{
-				Type:    framework.TypeString,
-				Default: "",
-				Description: `If set, the O (Organization) will be set to
-this value in certificates issued by this role.`,
-			},
-
-			"generate_lease": &framework.FieldSchema{
-				Type:    framework.TypeBool,
-				Default: false,
-				Description: `
-If set, certificates issued/signed against this role will have Vault leases
-attached to them. Defaults to "false". Certificates can be added to the CRL by
-"vault revoke <lease_id>" when certificates are associated with leases.  It can
-also be done using the "pki/revoke" endpoint. However, when lease generation is
-disabled, invoking "pki/revoke" would be the only way to add the certificates
-to the CRL.  When large number of certificates are generated with long
-lifetimes, it is recommended that lease generation be disabled, as large amount of
-leases adversely affect the startup time of Vault.`,
 			},
 		},
 
@@ -270,16 +221,6 @@ func (b *backend) getRole(s logical.Storage, n string) (*roleEntry, error) {
 		modified = true
 	}
 
-	// Upgrade generate_lease in role
-	if result.GenerateLease == nil {
-		// All the new roles will have GenerateLease always set to a value. A
-		// nil value indicates that this role needs an upgrade. Set it to
-		// `true` to not alter its current behavior.
-		result.GenerateLease = new(bool)
-		*result.GenerateLease = true
-		modified = true
-	}
-
 	if modified {
 		jsonEntry, err := logical.StorageEntryJSON("role/"+n, &result)
 		if err != nil {
@@ -305,12 +246,7 @@ func (b *backend) pathRoleDelete(
 
 func (b *backend) pathRoleRead(
 	req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	roleName := data.Get("name").(string)
-	if roleName == "" {
-		return logical.ErrorResponse("missing role name"), nil
-	}
-
-	role, err := b.getRole(req.Storage, roleName)
+	role, err := b.getRole(req.Storage, data.Get("name").(string))
 	if err != nil {
 		return nil, err
 	}
@@ -379,14 +315,7 @@ func (b *backend) pathRoleCreate(
 		KeyType:             data.Get("key_type").(string),
 		KeyBits:             data.Get("key_bits").(int),
 		UseCSRCommonName:    data.Get("use_csr_common_name").(bool),
-		UseCSRSANs:          data.Get("use_csr_sans").(bool),
-		KeyUsage:            data.Get("key_usage").(string),
-		OU:                  data.Get("ou").(string),
-		Organization:        data.Get("organization").(string),
-		GenerateLease:       new(bool),
 	}
-
-	*entry.GenerateLease = data.Get("generate_lease").(bool)
 
 	if entry.KeyType == "rsa" && entry.KeyBits < 2048 {
 		return logical.ErrorResponse("RSA keys < 2048 bits are unsafe and not supported"), nil
@@ -397,10 +326,10 @@ func (b *backend) pathRoleCreate(
 	if len(entry.MaxTTL) == 0 {
 		maxTTL = maxSystemTTL
 	} else {
-		maxTTL, err = parseutil.ParseDurationSecond(entry.MaxTTL)
+		maxTTL, err = time.ParseDuration(entry.MaxTTL)
 		if err != nil {
 			return logical.ErrorResponse(fmt.Sprintf(
-				"Invalid max ttl: %s", err)), nil
+				"Invalid ttl: %s", err)), nil
 		}
 	}
 	if maxTTL > maxSystemTTL {
@@ -409,7 +338,7 @@ func (b *backend) pathRoleCreate(
 
 	ttl := b.System().DefaultLeaseTTL()
 	if len(entry.TTL) != 0 {
-		ttl, err = parseutil.ParseDurationSecond(entry.TTL)
+		ttl, err = time.ParseDuration(entry.TTL)
 		if err != nil {
 			return logical.ErrorResponse(fmt.Sprintf(
 				"Invalid ttl: %s", err)), nil
@@ -447,35 +376,6 @@ func (b *backend) pathRoleCreate(
 	return nil, nil
 }
 
-func parseKeyUsages(input string) int {
-	var parsedKeyUsages x509.KeyUsage
-	splitKeyUsage := strings.Split(input, ",")
-	for _, k := range splitKeyUsage {
-		switch strings.ToLower(strings.TrimSpace(k)) {
-		case "digitalsignature":
-			parsedKeyUsages |= x509.KeyUsageDigitalSignature
-		case "contentcommitment":
-			parsedKeyUsages |= x509.KeyUsageContentCommitment
-		case "keyencipherment":
-			parsedKeyUsages |= x509.KeyUsageKeyEncipherment
-		case "dataencipherment":
-			parsedKeyUsages |= x509.KeyUsageDataEncipherment
-		case "keyagreement":
-			parsedKeyUsages |= x509.KeyUsageKeyAgreement
-		case "certsign":
-			parsedKeyUsages |= x509.KeyUsageCertSign
-		case "crlsign":
-			parsedKeyUsages |= x509.KeyUsageCRLSign
-		case "encipheronly":
-			parsedKeyUsages |= x509.KeyUsageEncipherOnly
-		case "decipheronly":
-			parsedKeyUsages |= x509.KeyUsageDecipherOnly
-		}
-	}
-
-	return int(parsedKeyUsages)
-}
-
 type roleEntry struct {
 	LeaseMax              string `json:"lease_max" structs:"lease_max" mapstructure:"lease_max"`
 	Lease                 string `json:"lease" structs:"lease" mapstructure:"lease"`
@@ -496,20 +396,15 @@ type roleEntry struct {
 	CodeSigningFlag       bool   `json:"code_signing_flag" structs:"code_signing_flag" mapstructure:"code_signing_flag"`
 	EmailProtectionFlag   bool   `json:"email_protection_flag" structs:"email_protection_flag" mapstructure:"email_protection_flag"`
 	UseCSRCommonName      bool   `json:"use_csr_common_name" structs:"use_csr_common_name" mapstructure:"use_csr_common_name"`
-	UseCSRSANs            bool   `json:"use_csr_sans" structs:"use_csr_sans" mapstructure:"use_csr_sans"`
 	KeyType               string `json:"key_type" structs:"key_type" mapstructure:"key_type"`
 	KeyBits               int    `json:"key_bits" structs:"key_bits" mapstructure:"key_bits"`
-	MaxPathLength         *int   `json:",omitempty" structs:"max_path_length,omitempty" mapstructure:"max_path_length"`
-	KeyUsage              string `json:"key_usage" structs:"key_usage" mapstructure:"key_usage"`
-	OU                    string `json:"ou" structs:"ou" mapstructure:"ou"`
-	Organization          string `json:"organization" structs:"organization" mapstructure:"organization"`
-	GenerateLease         *bool  `json:"generate_lease,omitempty" structs:"generate_lease,omitempty"`
+	MaxPathLength         *int   `json:",omitempty" structs:",omitempty"`
 }
 
-const pathListRolesHelpSyn = `List the existing roles in this backend`
+const pathRoleHelpSyn = `
+Manage the roles that can be created with this backend.
+`
 
-const pathListRolesHelpDesc = `Roles will be listed by the role name.`
-
-const pathRoleHelpSyn = `Manage the roles that can be created with this backend.`
-
-const pathRoleHelpDesc = `This path lets you manage the roles that can be created with this backend.`
+const pathRoleHelpDesc = `
+This path lets you manage the roles that can be created with this backend.
+`

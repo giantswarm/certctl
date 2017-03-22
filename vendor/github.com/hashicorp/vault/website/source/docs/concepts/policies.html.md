@@ -34,16 +34,6 @@ path "secret/foo" {
 path "secret/super-secret" {
   capabilities = ["deny"]
 }
-
-path "secret/bar" {
-  capabilities = ["create"]
-  allowed_parameters = {
-    "*" = []
-  }
-  denied_parameters = {
-    "foo" = ["bar"]
-  }
-}
 ```
 
 Policies use path based matching to apply rules. A policy may be an exact
@@ -109,58 +99,6 @@ capabilities. These mappings are as follows:
 
   * `read` - `["read", "list"]`
 
-## Fine-Grained Control
-
-There are a few optional fields that allow for fine-grained control over client
-behavior on a given path. The capabilities associated with this path take
-precedence over permissions on parameters.
-
-### Allowed and Disallowed Parameters
-
-These parameters allow the administrator to restrict the keys (and optionally
-values) that a user is allowed to specify when calling a path.
-
-  * `allowed_parameters` - A map of keys to an array of values that acts as a
-    whitelist. Setting a key with an `[]` value will allow changes to
-    parameters with that name. Setting a key with a populated value array (e.g.
-    `["foo", "bar"]`, `[3600, 7200]` or `[true]` will allow that parameter to
-    only be set to one of the values in the array. If any keys exist in the
-    `allowed_parameters` object all keys not specified will be denied unless
-    there the key `"*"` is set (mapping to an empty array), which will allow
-    all other parameters to be modified; parameters with specific values will
-    still be restricted to those values.
-  * `denied_parameters` - A map of keys to an array of values that acts as a
-    blacklist, and any parameter set here takes precedence over
-    `allowed_parameters`. Setting to "*" will deny any parameter (so only calls
-    made without specifying any parameters will be allowed). Otherwise setting
-    a key with an `[]` value will deny any changes to parameters with that
-    name. Setting a key with a populated value array will deny any attempt to
-    set a parameter with that name and value. If keys exist in the
-    `denied_parameters` object all keys not specified will be allowed (unless
-    `allowed_parameters` is also set, in which case normal rules will apply).
-
-### Required Minimum/Maximum Response Wrapping TTLs
-
-These parameters can be used to set minimums/maximums on TTLs set by clients
-when requesting that a response be
-[wrapped](https://www.vaultproject.io/docs/concepts/response-wrapping.html), with a granularity of a second. These can either be specified as a number of seconds or a string with a `s`, `m`, or `h` suffix indicating seconds, minutes, and hours respectively.
-
-In practice, setting a minimum TTL of one second effectively makes response
-wrapping mandatory for a particular path.
-
-  * `min_wrapping_ttl` - The minimum allowed TTL that clients can specify for a
-    wrapped response. In practice, setting a minimum TTL of one second
-    effectively makes response wrapping mandatory for a particular path. It can
-    also be used to ensure that the TTL is not too low, leading to end targets
-    being unable to unwrap before the token expires.
-  * `max_wrapping_ttl` - The maximum allowed TTL that clients can specify for a
-    wrapped response.
-
-If both are specified, the minimum value must be less than the maximum. In
-addition, if paths are merged from different stanzas, the lowest value
-specified for each is the value that will result, in line with the idea of
-keeping token lifetimes as short as possible.
-
 ## Root Policy
 
 The "root" policy is a special policy that can not be modified or removed.
@@ -187,10 +125,41 @@ For tokens, they are associated at creation time with `vault token-create`
 and the `-policy` flags. Child tokens can be associated with a subset of
 a parent's policies. Root users can assign any policies.
 
-There is no way to modify the policies associated with a token once the token
-has been issued. The token must be revoked and a new one acquired to receive a
-new set of policies.
+There is no way to modify the policies associated with an active
+identity. The identity must be revoked and reauthenticated to receive
+the new policy list.
 
-However, the _contents_ of policies are parsed in real-time at every token use.
-As a result, if a policy is modified, the modified rules will be in force the
-next time a token with that policy attached is used to make a call to Vault.
+If an _existing_ policy is modified, the modifications propagate
+to all associated users instantly. The above paragraph is more specifically
+stating that you can't add new or remove policies associated with an
+active identity.
+
+## Changes from 0.1
+
+In Vault versions prior to 0.2, the ACL policy language had a slightly
+different specification and semantics. The current specification requires
+that glob behavior explicitly be specified by adding the `*` character to
+the end of a path. Previously, all paths were glob based matches and no
+exact match could be specified.
+
+The other change is that deny had the lowest precedence. This meant if there
+were two policies being merged (e.g. "ops" and "prod") and they had a conflicting
+policy like:
+
+```
+path "sys/seal" {
+    policy = "deny"
+}
+
+path "sys/seal" {
+    policy = "read"
+}
+```
+
+The merge would previously give the "read" higher precedence. The current
+version of Vault prioritizes the explicit deny, so that the "deny" would
+take precedence.
+
+To make all Vault 0.1 policies compatible with Vault 0.2+, the explicit
+glob character must be added to all the path prefixes.
+

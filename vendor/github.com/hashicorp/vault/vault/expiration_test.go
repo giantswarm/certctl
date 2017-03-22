@@ -2,129 +2,21 @@ package vault
 
 import (
 	"fmt"
-	"os"
 	"reflect"
 	"sort"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
 	"github.com/hashicorp/go-uuid"
-	"github.com/hashicorp/vault/helper/logformat"
 	"github.com/hashicorp/vault/logical"
 	"github.com/hashicorp/vault/logical/framework"
-	"github.com/hashicorp/vault/physical"
-	log "github.com/mgutz/logxi/v1"
-)
-
-var (
-	testImagePull sync.Once
 )
 
 // mockExpiration returns a mock expiration manager
-func mockExpiration(t testing.TB) *ExpirationManager {
+func mockExpiration(t *testing.T) *ExpirationManager {
 	_, ts, _, _ := TestCoreWithTokenStore(t)
 	return ts.expiration
-}
-
-func mockBackendExpiration(t testing.TB, backend physical.Backend) (*Core, *ExpirationManager) {
-	c, ts, _, _ := TestCoreWithBackendTokenStore(t, backend)
-	return c, ts.expiration
-}
-
-func BenchmarkExpiration_Restore_Etcd(b *testing.B) {
-	addr := os.Getenv("PHYSICAL_BACKEND_BENCHMARK_ADDR")
-	randPath := fmt.Sprintf("vault-%d/", time.Now().Unix())
-
-	logger := logformat.NewVaultLogger(log.LevelTrace)
-	physicalBackend, err := physical.NewBackend("etcd", logger, map[string]string{
-		"address":      addr,
-		"path":         randPath,
-		"max_parallel": "256",
-	})
-	if err != nil {
-		b.Fatalf("err: %s", err)
-	}
-
-	benchmarkExpirationBackend(b, physicalBackend, 10000) // 10,000 leases
-}
-
-func BenchmarkExpiration_Restore_Consul(b *testing.B) {
-	addr := os.Getenv("PHYSICAL_BACKEND_BENCHMARK_ADDR")
-	randPath := fmt.Sprintf("vault-%d/", time.Now().Unix())
-
-	logger := logformat.NewVaultLogger(log.LevelTrace)
-	physicalBackend, err := physical.NewBackend("consul", logger, map[string]string{
-		"address":      addr,
-		"path":         randPath,
-		"max_parallel": "256",
-	})
-	if err != nil {
-		b.Fatalf("err: %s", err)
-	}
-
-	benchmarkExpirationBackend(b, physicalBackend, 10000) // 10,000 leases
-}
-
-func BenchmarkExpiration_Restore_InMem(b *testing.B) {
-	logger := logformat.NewVaultLogger(log.LevelTrace)
-	benchmarkExpirationBackend(b, physical.NewInmem(logger), 100000) // 100,000 Leases
-}
-
-func benchmarkExpirationBackend(b *testing.B, physicalBackend physical.Backend, numLeases int) {
-	c, exp := mockBackendExpiration(b, physicalBackend)
-	noop := &NoopBackend{}
-	view := NewBarrierView(c.barrier, "logical/")
-	meUUID, err := uuid.GenerateUUID()
-	if err != nil {
-		b.Fatal(err)
-	}
-	exp.router.Mount(noop, "prod/aws/", &MountEntry{UUID: meUUID}, view)
-
-	// Register fake leases
-	for i := 0; i < numLeases; i++ {
-		pathUUID, err := uuid.GenerateUUID()
-		if err != nil {
-			b.Fatal(err)
-		}
-
-		req := &logical.Request{
-			Operation: logical.ReadOperation,
-			Path:      "prod/aws/" + pathUUID,
-		}
-		resp := &logical.Response{
-			Secret: &logical.Secret{
-				LeaseOptions: logical.LeaseOptions{
-					TTL: 400 * time.Second,
-				},
-			},
-			Data: map[string]interface{}{
-				"access_key": "xyz",
-				"secret_key": "abcd",
-			},
-		}
-		_, err = exp.Register(req, resp)
-		if err != nil {
-			b.Fatalf("err: %v", err)
-		}
-	}
-
-	// Stop everything
-	err = exp.Stop()
-	if err != nil {
-		b.Fatalf("err: %v", err)
-	}
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		err = exp.Restore()
-		// Restore
-		if err != nil {
-			b.Fatalf("err: %v", err)
-		}
-	}
-	b.StopTimer()
 }
 
 func TestExpiration_Restore(t *testing.T) {
@@ -266,12 +158,9 @@ func TestExpiration_RegisterAuth_NoLease(t *testing.T) {
 	}
 
 	// Should not be able to renew, no expiration
-	resp, err := exp.RenewToken(&logical.Request{}, "auth/github/login", root.ID, 0)
-	if err != nil && (err != logical.ErrInvalidRequest || (resp != nil && resp.IsError() && resp.Error().Error() != "lease not found or lease is not renewable")) {
-		t.Fatalf("bad: err:%v resp:%#v", err, resp)
-	}
-	if resp == nil {
-		t.Fatal("expected a response")
+	_, err = exp.RenewToken(&logical.Request{}, "auth/github/login", root.ID, 0)
+	if err.Error() != "lease not found or lease is not renewable" {
+		t.Fatalf("err: %v", err)
 	}
 
 	// Wait and check token is not invalidated
@@ -566,14 +455,10 @@ func TestExpiration_RenewToken_NotRenewable(t *testing.T) {
 	}
 
 	// Attempt to renew the token
-	resp, err := exp.RenewToken(&logical.Request{}, "auth/github/login", root.ID, 0)
-	if err != nil && (err != logical.ErrInvalidRequest || (resp != nil && resp.IsError() && resp.Error().Error() != "lease is not renewable")) {
-		t.Fatalf("bad: err:%v resp:%#v", err, resp)
+	_, err = exp.RenewToken(&logical.Request{}, "auth/github/login", root.ID, 0)
+	if err.Error() != "lease is not renewable" {
+		t.Fatalf("err: %v", err)
 	}
-	if resp == nil {
-		t.Fatal("expected a response")
-	}
-
 }
 
 func TestExpiration_Renew(t *testing.T) {
@@ -813,23 +698,10 @@ func TestExpiration_revokeEntry_token(t *testing.T) {
 		t.Fatalf("err: %v", err)
 	}
 
-	// N.B.: Vault doesn't allow both a secret and auth to be returned, but the
-	// reason for both is that auth needs to be included in order to use the
-	// token store as it's the only mounted backend, *but* RegisterAuth doesn't
-	// actually create the index by token, only Register (for a Secret) does.
-	// So without the Secret we don't do anything when removing the index which
-	// (at the time of writing) now fails because a bug causing every token
-	// expiration to do an extra delete to a non-existent key has been fixed,
-	// and this test relies on this nonstandard behavior.
 	le := &leaseEntry{
 		LeaseID: "foo/bar/1234",
 		Auth: &logical.Auth{
 			ClientToken: root.ID,
-			LeaseOptions: logical.LeaseOptions{
-				TTL: time.Minute,
-			},
-		},
-		Secret: &logical.Secret{
 			LeaseOptions: logical.LeaseOptions{
 				TTL: time.Minute,
 			},
@@ -846,7 +718,7 @@ func TestExpiration_revokeEntry_token(t *testing.T) {
 	if err := exp.createIndexByToken(le.ClientToken, le.LeaseID); err != nil {
 		t.Fatalf("error creating secondary index: %v", err)
 	}
-	exp.updatePending(le, le.Secret.LeaseTotal())
+	exp.updatePending(le, le.Auth.LeaseTotal())
 
 	indexEntry, err := exp.indexByToken(le.ClientToken, le.LeaseID)
 	if err != nil {
@@ -1016,7 +888,6 @@ func TestExpiration_renewAuthEntry(t *testing.T) {
 
 func TestExpiration_PersistLoadDelete(t *testing.T) {
 	exp := mockExpiration(t)
-	lastTime := time.Now()
 	le := &leaseEntry{
 		LeaseID: "foo/bar/1234",
 		Path:    "foo/bar",
@@ -1028,9 +899,9 @@ func TestExpiration_PersistLoadDelete(t *testing.T) {
 				TTL: time.Minute,
 			},
 		},
-		IssueTime:       lastTime,
-		ExpireTime:      lastTime,
-		LastRenewalTime: lastTime,
+		IssueTime:       time.Now().UTC(),
+		ExpireTime:      time.Now().UTC(),
+		LastRenewalTime: time.Time{}.UTC(),
 	}
 	if err := exp.persistEntry(le); err != nil {
 		t.Fatalf("err: %v", err)
@@ -1040,16 +911,8 @@ func TestExpiration_PersistLoadDelete(t *testing.T) {
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	if !le.LastRenewalTime.Equal(out.LastRenewalTime) ||
-		!le.IssueTime.Equal(out.IssueTime) ||
-		!le.ExpireTime.Equal(out.ExpireTime) {
-		t.Fatalf("bad: expected:\n%#v\nactual:\n%#v", le, out)
-	}
-	le.LastRenewalTime = out.LastRenewalTime
-	le.IssueTime = out.IssueTime
-	le.ExpireTime = out.ExpireTime
 	if !reflect.DeepEqual(out, le) {
-		t.Fatalf("bad: expected:\n%#v\nactual:\n%#v", le, out)
+		t.Fatalf("\nout: %#v\nexpect: %#v\n", out, le)
 	}
 
 	err = exp.deleteEntry("foo/bar/1234")
@@ -1078,8 +941,8 @@ func TestLeaseEntry(t *testing.T) {
 				TTL: time.Minute,
 			},
 		},
-		IssueTime:  time.Now(),
-		ExpireTime: time.Now(),
+		IssueTime:  time.Now().UTC(),
+		ExpireTime: time.Now().UTC(),
 	}
 
 	enc, err := le.encode()

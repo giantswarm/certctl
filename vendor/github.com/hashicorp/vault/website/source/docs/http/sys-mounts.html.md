@@ -39,8 +39,7 @@ description: |-
         "description": "AWS keys",
         "config": {
           "default_lease_ttl": 0,
-          "max_lease_ttl": 0,
-          "force_no_cache": false
+          "max_lease_ttl": 0
         }
       },
 
@@ -49,10 +48,41 @@ description: |-
         "description": "system endpoint",
         "config": {
           "default_lease_ttl": 0,
-          "max_lease_ttl": 0,
-          "force_no_cache": false
+          "max_lease_ttl": 0
         }
       }
+    }
+    ```
+
+  </dd>
+</dl>
+
+<dl>
+  <dt>Description</dt>
+  <dd>
+    List the given mount's configuration. Unlike the `mounts`
+    endpoint, this will return the current time in seconds for each
+    TTL, which may be the system default or a mount-specific value.
+  </dd>
+
+  <dt>Method</dt>
+  <dd>GET</dd>
+
+  <dt>URL</dt>
+  <dd>`/sys/mounts/<mount point>/tune`</dd>
+
+  <dt>Parameters</dt>
+  <dd>
+    None
+  </dd>
+
+  <dt>Returns</dt>
+  <dd>
+
+    ```javascript
+    {
+      "default_lease_ttl": 3600,
+      "max_lease_ttl": 7200
     }
     ```
 
@@ -90,10 +120,11 @@ description: |-
         <span class="param">config</span>
         <span class="param-flags">optional</span>
         Config options for this mount. This is an object with
-        three possible values: `default_lease_ttl`,
-        `max_lease_ttl`, and`force_no_cache`. These control the default and
-        maximum lease time-to-live, and force disabling backend caching respectively.
-        If set on a specific mount, this overrides the global defaults.
+        two possible values: `default_lease_ttl` and
+        `max_lease_ttl`. These control the default and
+        maximum lease time-to-live, respectively. If set
+        on a specific mount, this overrides the global
+        defaults.
       </li>
     </ul>
   </dd>
@@ -102,68 +133,6 @@ description: |-
   <dd>`204` response code.
   </dd>
 </dl>
-
-## DELETE
-
-<dl>
-  <dt>Description</dt>
-  <dd>
-    Unmount the mount point specified in the URL.
-  </dd>
-
-  <dt>Method</dt>
-  <dd>DELETE</dd>
-
-  <dt>URL</dt>
-  <dd>`/sys/mounts/<mount point>`</dd>
-
-  <dt>Parameters</dt>
-  <dd>None
-  </dd>
-
-  <dt>Returns</dt>
-  <dd>`204` response code.
-  </dd>
-</dl>
-
-# /sys/mounts/[mount point]/tune
-
-## GET
-
-<dl>
-  <dt>Description</dt>
-  <dd>
-    Read the given mount's configuration. Unlike the `mounts`
-    endpoint, this will return the current time in seconds for each
-    TTL, which may be the system default or a mount-specific value.
-  </dd>
-
-  <dt>Method</dt>
-  <dd>GET</dd>
-
-  <dt>URL</dt>
-  <dd>`/sys/mounts/<mount point>/tune`</dd>
-
-  <dt>Parameters</dt>
-  <dd>
-    None
-  </dd>
-
-  <dt>Returns</dt>
-  <dd>
-
-    ```javascript
-    {
-      "default_lease_ttl": 3600,
-      "max_lease_ttl": 7200,
-      "force_no_cache": false
-    }
-    ```
-
-  </dd>
-</dl>
-
-## POST
 
 <dl>
   <dt>Description</dt>
@@ -195,6 +164,29 @@ description: |-
         are equivalent and set to the system max TTL.
       </li>
     </ul>
+  </dd>
+
+  <dt>Returns</dt>
+  <dd>`204` response code.
+  </dd>
+</dl>
+
+## DELETE
+
+<dl>
+  <dt>Description</dt>
+  <dd>
+    Unmount the mount point specified in the URL.
+  </dd>
+
+  <dt>Method</dt>
+  <dd>DELETE</dd>
+
+  <dt>URL</dt>
+  <dd>`/sys/mounts/<mount point>`</dd>
+
+  <dt>Parameters</dt>
+  <dd>None
   </dd>
 
   <dt>Returns</dt>

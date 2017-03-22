@@ -2,10 +2,15 @@ package meta
 
 import (
 	"bufio"
+	"crypto/tls"
 	"flag"
+	"fmt"
 	"io"
+	"net/http"
+	"os"
 
 	"github.com/hashicorp/errwrap"
+	"github.com/hashicorp/go-rootcerts"
 	"github.com/hashicorp/vault/api"
 	"github.com/hashicorp/vault/command/token"
 	"github.com/mitchellh/cli"
@@ -21,21 +26,6 @@ const (
 	FlagSetNone    FlagSetFlags = 0
 	FlagSetServer  FlagSetFlags = 1 << iota
 	FlagSetDefault              = FlagSetServer
-)
-
-var (
-	additionalOptionsUsage = func() string {
-		return `
-  -wrap-ttl=""            Indicates that the response should be wrapped in a
-                          cubbyhole token with the requested TTL. The response
-                          can be fetched by calling the "sys/wrapping/unwrap"
-                          endpoint, passing in the wrappping token's ID. This
-                          is a numeric string with an optional suffix
-                          "s", "m", or "h"; if no suffix is specified it will
-                          be parsed as seconds. May also be specified via
-                          VAULT_WRAP_TTL.
-`
-	}
 )
 
 // Meta contains the meta-options and functionality that nearly every
@@ -65,7 +55,7 @@ func (m *Meta) DefaultWrappingLookupFunc(operation, path string) string {
 		return m.flagWrapTTL
 	}
 
-	return api.DefaultWrappingLookupFunc(operation, path)
+	return os.Getenv(api.EnvVaultWrapTTL)
 }
 
 // Client returns the API client to a Vault server given the configured
@@ -86,15 +76,31 @@ func (m *Meta) Client() (*api.Client, error) {
 	}
 	// If we need custom TLS configuration, then set it
 	if m.flagCACert != "" || m.flagCAPath != "" || m.flagClientCert != "" || m.flagClientKey != "" || m.flagInsecure {
-		t := &api.TLSConfig{
-			CACert:        m.flagCACert,
-			CAPath:        m.flagCAPath,
-			ClientCert:    m.flagClientCert,
-			ClientKey:     m.flagClientKey,
-			TLSServerName: "",
-			Insecure:      m.flagInsecure,
+		// We may have set items from the environment so start with the
+		// existing TLS config
+		tlsConfig := config.HttpClient.Transport.(*http.Transport).TLSClientConfig
+
+		rootConfig := &rootcerts.Config{
+			CAFile: m.flagCACert,
+			CAPath: m.flagCAPath,
 		}
-		config.ConfigureTLS(t)
+		if err := rootcerts.ConfigureTLS(tlsConfig, rootConfig); err != nil {
+			return nil, err
+		}
+
+		if m.flagInsecure {
+			tlsConfig.InsecureSkipVerify = true
+		}
+
+		if m.flagClientCert != "" && m.flagClientKey != "" {
+			tlsCert, err := tls.LoadX509KeyPair(m.flagClientCert, m.flagClientKey)
+			if err != nil {
+				return nil, err
+			}
+			tlsConfig.Certificates = []tls.Certificate{tlsCert}
+		} else if m.flagClientCert != "" || m.flagClientKey != "" {
+			return nil, fmt.Errorf("Both client cert and client key must be provided")
+		}
 	}
 
 	// Build the client
@@ -203,6 +209,6 @@ func GeneralOptionsUsage() string {
                           if VAULT_SKIP_VERIFY is set.
 `
 
-	general += additionalOptionsUsage()
+	general += AdditionalOptionsUsage()
 	return general
 }

@@ -1,7 +1,6 @@
 package http
 
 import (
-	"encoding/json"
 	"reflect"
 	"testing"
 
@@ -18,40 +17,15 @@ func TestSysAuth(t *testing.T) {
 
 	var actual map[string]interface{}
 	expected := map[string]interface{}{
-		"lease_id":       "",
-		"renewable":      false,
-		"lease_duration": json.Number("0"),
-		"wrap_info":      nil,
-		"warnings":       nil,
-		"auth":           nil,
-		"data": map[string]interface{}{
-			"token/": map[string]interface{}{
-				"description": "token based credentials",
-				"type":        "token",
-				"config": map[string]interface{}{
-					"default_lease_ttl": json.Number("0"),
-					"max_lease_ttl":     json.Number("0"),
-				},
-				"local": false,
-			},
-		},
 		"token/": map[string]interface{}{
 			"description": "token based credentials",
 			"type":        "token",
-			"config": map[string]interface{}{
-				"default_lease_ttl": json.Number("0"),
-				"max_lease_ttl":     json.Number("0"),
-			},
-			"local": false,
 		},
 	}
 	testResponseStatus(t, resp, 200)
 	testResponseBody(t, resp, &actual)
-
-	expected["request_id"] = actual["request_id"]
-
 	if !reflect.DeepEqual(actual, expected) {
-		t.Fatalf("bad: expected:%#v\nactual:%#v", expected, actual)
+		t.Fatalf("bad: %#v", actual)
 	}
 }
 
@@ -71,58 +45,19 @@ func TestSysEnableAuth(t *testing.T) {
 
 	var actual map[string]interface{}
 	expected := map[string]interface{}{
-		"lease_id":       "",
-		"renewable":      false,
-		"lease_duration": json.Number("0"),
-		"wrap_info":      nil,
-		"warnings":       nil,
-		"auth":           nil,
-		"data": map[string]interface{}{
-			"foo/": map[string]interface{}{
-				"description": "foo",
-				"type":        "noop",
-				"config": map[string]interface{}{
-					"default_lease_ttl": json.Number("0"),
-					"max_lease_ttl":     json.Number("0"),
-				},
-				"local": false,
-			},
-			"token/": map[string]interface{}{
-				"description": "token based credentials",
-				"type":        "token",
-				"config": map[string]interface{}{
-					"default_lease_ttl": json.Number("0"),
-					"max_lease_ttl":     json.Number("0"),
-				},
-				"local": false,
-			},
-		},
 		"foo/": map[string]interface{}{
 			"description": "foo",
 			"type":        "noop",
-			"config": map[string]interface{}{
-				"default_lease_ttl": json.Number("0"),
-				"max_lease_ttl":     json.Number("0"),
-			},
-			"local": false,
 		},
 		"token/": map[string]interface{}{
 			"description": "token based credentials",
 			"type":        "token",
-			"config": map[string]interface{}{
-				"default_lease_ttl": json.Number("0"),
-				"max_lease_ttl":     json.Number("0"),
-			},
-			"local": false,
 		},
 	}
 	testResponseStatus(t, resp, 200)
 	testResponseBody(t, resp, &actual)
-
-	expected["request_id"] = actual["request_id"]
-
 	if !reflect.DeepEqual(actual, expected) {
-		t.Fatalf("bad: expected:%#v\nactual:%#v", expected, actual)
+		t.Fatalf("bad: %#v", actual)
 	}
 }
 
@@ -145,39 +80,14 @@ func TestSysDisableAuth(t *testing.T) {
 
 	var actual map[string]interface{}
 	expected := map[string]interface{}{
-		"lease_id":       "",
-		"renewable":      false,
-		"lease_duration": json.Number("0"),
-		"wrap_info":      nil,
-		"warnings":       nil,
-		"auth":           nil,
-		"data": map[string]interface{}{
-			"token/": map[string]interface{}{
-				"config": map[string]interface{}{
-					"default_lease_ttl": json.Number("0"),
-					"max_lease_ttl":     json.Number("0"),
-				},
-				"description": "token based credentials",
-				"type":        "token",
-				"local":       false,
-			},
-		},
 		"token/": map[string]interface{}{
-			"config": map[string]interface{}{
-				"default_lease_ttl": json.Number("0"),
-				"max_lease_ttl":     json.Number("0"),
-			},
 			"description": "token based credentials",
 			"type":        "token",
-			"local":       false,
 		},
 	}
 	testResponseStatus(t, resp, 200)
 	testResponseBody(t, resp, &actual)
-
-	expected["request_id"] = actual["request_id"]
-
 	if !reflect.DeepEqual(actual, expected) {
-		t.Fatalf("bad: expected:%#v\nactual:%#v", expected, actual)
+		t.Fatalf("bad: %#v", actual)
 	}
 }
