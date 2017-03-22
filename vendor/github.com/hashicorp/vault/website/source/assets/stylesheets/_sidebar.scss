@@ -1,0 +1,15 @@
+.sidebar {
+  .sidebar-nav {
+    li {
+      a {
+        color: $black;
+
+        svg{
+          path{
+            fill: $black;
+          }
+        }
+      }
+    }
+  }
+}
