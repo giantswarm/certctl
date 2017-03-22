@@ -1,5 +1,5 @@
-hash: 6dd74c6787b05d7af2dc42af8dda7a84877eb593420afac5146533d2cdd56a7e
-updated: 2017-03-22T09:16:33.347298936Z
+hash: 9b337714f3195700f523b9025e711df3646b92387f5ae7445d1a8fb76fd06cbf
+updated: 2017-03-22T16:11:37.296511858Z
 imports:
 - name: github.com/fatih/structs
   version: a720dfa8df582c51dee1b36feabb906bde1588bd
@@ -27,11 +27,9 @@ imports:
   - json/scanner
   - json/token
 - name: github.com/hashicorp/vault
-  version: 614deacfca3f3b7162bbf30a36d6fc7362cd47f0
+  version: f627c01df8d7bebb403cf899ca1beb24f5fc84cd
   subpackages:
   - api
-  - helper/compressutil
-  - helper/jsonutil
 - name: github.com/inconshreveable/mousetrap
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
 - name: github.com/juju/errgo
@@ -40,17 +38,8 @@ imports:
   version: b8bc1bf767474819792c23f32d8286a45736f1c6
 - name: github.com/mitchellh/mapstructure
   version: 53818660ed4955e899c0bcafa97299a388bd7c8e
-- name: github.com/sethgrid/pester
-  version: 2c5fb962da6113d0968907fd81dba3ca35151d1c
 - name: github.com/spf13/cobra
   version: 7be4beda01ec05d0b93d80b3facd2b6f44080d94
 - name: github.com/spf13/pflag
   version: 9ff6c6923cfffbcd502984b8e0c80539a94968b7
-- name: golang.org/x/net
-  version: a6577fac2d73be281a500b310739095313165611
-  subpackages:
-  - http2
-  - http2/hpack
-  - idna
-  - lex/httplex
 testImports: []

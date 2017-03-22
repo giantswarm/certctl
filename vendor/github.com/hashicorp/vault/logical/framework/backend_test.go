@@ -263,7 +263,7 @@ func TestBackendHandleRequest_renewExtend(t *testing.T) {
 	}
 
 	req := logical.RenewRequest("/foo", secret.Response(nil, nil).Secret, nil)
-	req.Secret.IssueTime = time.Now()
+	req.Secret.IssueTime = time.Now().UTC()
 	req.Secret.Increment = 1 * time.Hour
 	resp, err := b.HandleRequest(req)
 	if err != nil {
@@ -551,16 +551,6 @@ func TestFieldSchemaDefaultOrZero(t *testing.T) {
 
 		"default duration set": {
 			&FieldSchema{Type: TypeDurationSecond, Default: 60},
-			60,
-		},
-
-		"default duration int64": {
-			&FieldSchema{Type: TypeDurationSecond, Default: int64(60)},
-			60,
-		},
-
-		"default duration string": {
-			&FieldSchema{Type: TypeDurationSecond, Default: "60s"},
 			60,
 		},
 

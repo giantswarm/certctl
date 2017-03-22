@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/fatih/structs"
-	"github.com/mitchellh/mapstructure"
 )
 
 func (c *Sys) ListMounts() (map[string]*MountOutput, error) {
@@ -15,32 +14,9 @@ func (c *Sys) ListMounts() (map[string]*MountOutput, error) {
 	}
 	defer resp.Body.Close()
 
-	var result map[string]interface{}
+	var result map[string]*MountOutput
 	err = resp.DecodeJSON(&result)
-	if err != nil {
-		return nil, err
-	}
-
-	mounts := map[string]*MountOutput{}
-	for k, v := range result {
-		switch v.(type) {
-		case map[string]interface{}:
-		default:
-			continue
-		}
-		var res MountOutput
-		err = mapstructure.Decode(v, &res)
-		if err != nil {
-			return nil, err
-		}
-		// Not a mount, some other api.Secret data
-		if res.Type == "" {
-			continue
-		}
-		mounts[k] = &res
-	}
-
-	return mounts, nil
+	return result, err
 }
 
 func (c *Sys) Mount(path string, mountInfo *MountInput) error {
@@ -109,13 +85,8 @@ func (c *Sys) MountConfig(path string) (*MountConfigOutput, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
-
 	var result MountConfigOutput
 	err = resp.DecodeJSON(&result)
-	if err != nil {
-		return nil, err
-	}
-
 	return &result, err
 }
 
@@ -123,24 +94,20 @@ type MountInput struct {
 	Type        string           `json:"type" structs:"type"`
 	Description string           `json:"description" structs:"description"`
 	Config      MountConfigInput `json:"config" structs:"config"`
-	Local       bool             `json:"local" structs:"local"`
 }
 
 type MountConfigInput struct {
 	DefaultLeaseTTL string `json:"default_lease_ttl" structs:"default_lease_ttl" mapstructure:"default_lease_ttl"`
 	MaxLeaseTTL     string `json:"max_lease_ttl" structs:"max_lease_ttl" mapstructure:"max_lease_ttl"`
-	ForceNoCache    bool   `json:"force_no_cache" structs:"force_no_cache" mapstructure:"force_no_cache"`
 }
 
 type MountOutput struct {
 	Type        string            `json:"type" structs:"type"`
 	Description string            `json:"description" structs:"description"`
 	Config      MountConfigOutput `json:"config" structs:"config"`
-	Local       bool              `json:"local" structs:"local"`
 }
 
 type MountConfigOutput struct {
-	DefaultLeaseTTL int  `json:"default_lease_ttl" structs:"default_lease_ttl" mapstructure:"default_lease_ttl"`
-	MaxLeaseTTL     int  `json:"max_lease_ttl" structs:"max_lease_ttl" mapstructure:"max_lease_ttl"`
-	ForceNoCache    bool `json:"force_no_cache" structs:"force_no_cache" mapstructure:"force_no_cache"`
+	DefaultLeaseTTL int `json:"default_lease_ttl" structs:"default_lease_ttl" mapstructure:"default_lease_ttl"`
+	MaxLeaseTTL     int `json:"max_lease_ttl" structs:"max_lease_ttl" mapstructure:"max_lease_ttl"`
 }

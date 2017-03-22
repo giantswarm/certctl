@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/hashicorp/vault/helper/salt"
 	"github.com/hashicorp/vault/logical"
 	"github.com/hashicorp/vault/logical/framework"
@@ -22,9 +21,6 @@ func Factory(conf *logical.BackendConfig) (logical.Backend, error) {
 type backend struct {
 	*framework.Backend
 	Salt *salt.Salt
-
-	// Used during initialization to set the salt
-	view logical.Storage
 
 	// Lock to make changes to any of the backend's configuration endpoints.
 	configMutex sync.RWMutex
@@ -48,27 +44,27 @@ type backend struct {
 	// of tidyCooldownPeriod.
 	nextTidyTime time.Time
 
-	// Map to hold the EC2 client objects indexed by region and STS role.
-	// This avoids the overhead of creating a client object for every login request.
-	// When the credentials are modified or deleted, all the cached client objects
-	// will be flushed. The empty STS role signifies the master account
-	EC2ClientsMap map[string]map[string]*ec2.EC2
-
-	// Map to hold the IAM client objects indexed by region and STS role.
-	// This avoids the overhead of creating a client object for every login request.
-	// When the credentials are modified or deleted, all the cached client objects
-	// will be flushed. The empty STS role signifies the master account
-	IAMClientsMap map[string]map[string]*iam.IAM
+	// Map to hold the EC2 client objects indexed by region. This avoids the
+	// overhead of creating a client object for every login request. When
+	// the credentials are modified or deleted, all the cached client objects
+	// will be flushed.
+	EC2ClientsMap map[string]*ec2.EC2
 }
 
 func Backend(conf *logical.BackendConfig) (*backend, error) {
+	salt, err := salt.NewSalt(conf.StorageView, &salt.Config{
+		HashFunc: salt.SHA256Hash,
+	})
+	if err != nil {
+		return nil, err
+	}
+
 	b := &backend{
 		// Setting the periodic func to be run once in an hour.
 		// If there is a real need, this can be made configurable.
 		tidyCooldownPeriod: time.Hour,
-		view:               conf.StorageView,
-		EC2ClientsMap:      make(map[string]map[string]*ec2.EC2),
-		IAMClientsMap:      make(map[string]map[string]*iam.IAM),
+		Salt:               salt,
+		EC2ClientsMap:      make(map[string]*ec2.EC2),
 	}
 
 	b.Backend = &framework.Backend{
@@ -79,9 +75,6 @@ func Backend(conf *logical.BackendConfig) (*backend, error) {
 			Unauthenticated: []string{
 				"login",
 			},
-			LocalStorage: []string{
-				"whitelist/identity/",
-			},
 		},
 		Paths: []*framework.Path{
 			pathLogin(b),
@@ -91,8 +84,6 @@ func Backend(conf *logical.BackendConfig) (*backend, error) {
 			pathRoleTag(b),
 			pathConfigClient(b),
 			pathConfigCertificate(b),
-			pathConfigSts(b),
-			pathListSts(b),
 			pathConfigTidyRoletagBlacklist(b),
 			pathConfigTidyIdentityWhitelist(b),
 			pathListCertificates(b),
@@ -103,24 +94,9 @@ func Backend(conf *logical.BackendConfig) (*backend, error) {
 			pathIdentityWhitelist(b),
 			pathTidyIdentityWhitelist(b),
 		},
-
-		Invalidate: b.invalidate,
-
-		Init: b.initialize,
 	}
 
 	return b, nil
-}
-
-func (b *backend) initialize() error {
-	salt, err := salt.NewSalt(b.view, &salt.Config{
-		HashFunc: salt.SHA256Hash,
-	})
-	if err != nil {
-		return err
-	}
-	b.Salt = salt
-	return nil
 }
 
 // periodicFunc performs the tasks that the backend wishes to do periodically.
@@ -134,7 +110,7 @@ func (b *backend) initialize() error {
 func (b *backend) periodicFunc(req *logical.Request) error {
 	// Run the tidy operations for the first time. Then run it when current
 	// time matches the nextTidyTime.
-	if b.nextTidyTime.IsZero() || !time.Now().Before(b.nextTidyTime) {
+	if b.nextTidyTime.IsZero() || !time.Now().UTC().Before(b.nextTidyTime) {
 		// safety_buffer defaults to 180 days for roletag blacklist
 		safety_buffer := 15552000
 		tidyBlacklistConfigEntry, err := b.lockedConfigTidyRoleTags(req.Storage)
@@ -178,19 +154,9 @@ func (b *backend) periodicFunc(req *logical.Request) error {
 		}
 
 		// Update the time at which to run the tidy functions again.
-		b.nextTidyTime = time.Now().Add(b.tidyCooldownPeriod)
+		b.nextTidyTime = time.Now().UTC().Add(b.tidyCooldownPeriod)
 	}
 	return nil
-}
-
-func (b *backend) invalidate(key string) {
-	switch key {
-	case "config/client":
-		b.configMutex.Lock()
-		defer b.configMutex.Unlock()
-		b.flushCachedEC2Clients()
-		b.flushCachedIAMClients()
-	}
 }
 
 const backendHelp = `

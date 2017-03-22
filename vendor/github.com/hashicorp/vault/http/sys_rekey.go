@@ -1,32 +1,17 @@
 package http
 
 import (
-	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"fmt"
 	"net/http"
 
-	"github.com/hashicorp/vault/helper/consts"
 	"github.com/hashicorp/vault/helper/pgpkeys"
 	"github.com/hashicorp/vault/vault"
 )
 
 func handleSysRekeyInit(core *vault.Core, recovery bool) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		standby, _ := core.Standby()
-		if standby {
-			respondStandby(core, w, r.URL)
-			return
-		}
-
-		repState := core.ReplicationState()
-		if repState == consts.ReplicationSecondary {
-			respondError(w, http.StatusBadRequest,
-				fmt.Errorf("rekeying can only be performed on the primary cluster when replication is activated"))
-			return
-		}
-
 		switch {
 		case recovery && !core.SealAccess().RecoveryKeySupported():
 			respondError(w, http.StatusBadRequest, fmt.Errorf("recovery rekeying not supported"))
@@ -103,7 +88,7 @@ func handleSysRekeyInitGet(core *vault.Core, recovery bool, w http.ResponseWrite
 func handleSysRekeyInitPut(core *vault.Core, recovery bool, w http.ResponseWriter, r *http.Request) {
 	// Parse the request
 	var req RekeyRequest
-	if err := parseRequest(r, w, &req); err != nil {
+	if err := parseRequest(r, &req); err != nil {
 		respondError(w, http.StatusBadRequest, err)
 		return
 	}
@@ -116,13 +101,8 @@ func handleSysRekeyInitPut(core *vault.Core, recovery bool, w http.ResponseWrite
 	// Right now we don't support this, but the rest of the code is ready for
 	// when we do, hence the check below for this to be false if
 	// StoredShares is greater than zero
-	if core.SealAccess().StoredKeysSupported() && !recovery {
+	if core.SealAccess().StoredKeysSupported() {
 		respondError(w, http.StatusBadRequest, fmt.Errorf("rekeying of barrier not supported when stored key support is available"))
-		return
-	}
-
-	if len(req.PGPKeys) > 0 && len(req.PGPKeys) != req.SecretShares-req.StoredShares {
-		respondError(w, http.StatusBadRequest, fmt.Errorf("incorrect number of PGP keys for rekey"))
 		return
 	}
 
@@ -153,39 +133,26 @@ func handleSysRekeyInitDelete(core *vault.Core, recovery bool, w http.ResponseWr
 
 func handleSysRekeyUpdate(core *vault.Core, recovery bool) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		standby, _ := core.Standby()
-		if standby {
-			respondStandby(core, w, r.URL)
-			return
-		}
-
 		// Parse the request
 		var req RekeyUpdateRequest
-		if err := parseRequest(r, w, &req); err != nil {
+		if err := parseRequest(r, &req); err != nil {
 			respondError(w, http.StatusBadRequest, err)
 			return
 		}
 		if req.Key == "" {
 			respondError(
 				w, http.StatusBadRequest,
-				errors.New("'key' must be specified in request body as JSON"))
+				errors.New("'key' must specified in request body as JSON"))
 			return
 		}
 
-		// Decode the key, which is base64 or hex encoded
-		min, max := core.BarrierKeyLength()
+		// Decode the key, which is hex encoded
 		key, err := hex.DecodeString(req.Key)
-		// We check min and max here to ensure that a string that is base64
-		// encoded but also valid hex will not be valid and we instead base64
-		// decode it
-		if err != nil || len(key) < min || len(key) > max {
-			key, err = base64.StdEncoding.DecodeString(req.Key)
-			if err != nil {
-				respondError(
-					w, http.StatusBadRequest,
-					errors.New("'key' must be a valid hex or base64 string"))
-				return
-			}
+		if err != nil {
+			respondError(
+				w, http.StatusBadRequest,
+				errors.New("'key' must be a valid hex-string"))
+			return
 		}
 
 		// Use the key to make progress on rekey
@@ -200,22 +167,18 @@ func handleSysRekeyUpdate(core *vault.Core, recovery bool) http.Handler {
 		if result != nil {
 			resp.Complete = true
 			resp.Nonce = req.Nonce
-			resp.Backup = result.Backup
-			resp.PGPFingerprints = result.PGPFingerprints
 
 			// Encode the keys
 			keys := make([]string, 0, len(result.SecretShares))
-			keysB64 := make([]string, 0, len(result.SecretShares))
 			for _, k := range result.SecretShares {
 				keys = append(keys, hex.EncodeToString(k))
-				keysB64 = append(keysB64, base64.StdEncoding.EncodeToString(k))
 			}
 			resp.Keys = keys
-			resp.KeysB64 = keysB64
-			respondOk(w, resp)
-		} else {
-			handleSysRekeyInitGet(core, recovery, w, r)
+
+			resp.Backup = result.Backup
+			resp.PGPFingerprints = result.PGPFingerprints
 		}
+		respondOk(w, resp)
 	})
 }
 
@@ -247,7 +210,6 @@ type RekeyUpdateResponse struct {
 	Nonce           string   `json:"nonce"`
 	Complete        bool     `json:"complete"`
 	Keys            []string `json:"keys"`
-	KeysB64         []string `json:"keys_base64"`
 	PGPFingerprints []string `json:"pgp_fingerprints"`
 	Backup          bool     `json:"backup"`
 }

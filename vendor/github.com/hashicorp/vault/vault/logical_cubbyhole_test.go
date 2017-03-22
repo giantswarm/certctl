@@ -10,6 +10,14 @@ import (
 	"github.com/hashicorp/vault/logical"
 )
 
+func TestCubbyholeBackend_RootPaths(t *testing.T) {
+	b := testCubbyholeBackend()
+	root := b.SpecialPaths()
+	if root != nil {
+		t.Fatalf("unexpected: %v", root)
+	}
+}
+
 func TestCubbyholeBackend_Write(t *testing.T) {
 	b := testCubbyholeBackend()
 	req := logical.TestRequest(t, logical.UpdateOperation, "foo")
@@ -259,7 +267,7 @@ func testCubbyholeBackend() logical.Backend {
 		Logger: nil,
 		System: logical.StaticSystemView{
 			DefaultLeaseTTLVal: time.Hour * 24,
-			MaxLeaseTTLVal:     time.Hour * 24 * 32,
+			MaxLeaseTTLVal:     time.Hour * 24 * 30,
 		},
 	})
 	return b

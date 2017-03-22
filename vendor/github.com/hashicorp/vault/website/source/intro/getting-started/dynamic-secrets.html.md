@@ -68,7 +68,7 @@ $ vault read aws/config/root
 Error reading aws/config/root: Error making API request.
 
 URL: GET http://127.0.0.1:8200/v1/aws/config/root
-Code: 405. Errors:
+Code: 500. Errors:
 
 * unsupported operation
 ```
@@ -84,7 +84,7 @@ API permissions.
 
 The AWS backend requires an IAM policy to associate created credentials
 with. For this example, we'll write just one policy, but you can associate
-many policies with the backend. Save a file named `policy.json` with the following contents:
+many policies with the backend. Save a file named "policy.json" with the following contents:
 
 ```javascript
 {
@@ -124,14 +124,10 @@ special path `aws/creds/<NAME>` where `NAME` is the role name:
 
 ```
 $ vault read aws/creds/deploy
-Key             Value
----             -----
-lease_id        aws/creds/deploy/0d042c53-aa8a-7ce7-9dfd-310351c465e5
-lease_duration  768h0m0s
-lease_renewable true
-access_key      AKIAJFN42DVCQWDHQYHQ
-secret_key      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
-security_token  <nil>
+Key         Value
+lease_id    aws/creds/deploy/0d042c53-aa8a-7ce7-9dfd-310351c465e5
+access_key  AKIAJFN42DVCQWDHQYHQ
+secret_key  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
 ```
 
 Success! The access and secret key can now be used to perform any EC2

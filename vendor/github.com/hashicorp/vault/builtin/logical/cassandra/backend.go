@@ -16,7 +16,7 @@ func Factory(conf *logical.BackendConfig) (logical.Backend, error) {
 }
 
 // Backend contains the base information for the backend's functionality
-func Backend() *backend {
+func Backend() *framework.Backend {
 	var b backend
 	b.Backend = &framework.Backend{
 		Help: strings.TrimSpace(backendHelp),
@@ -30,15 +30,9 @@ func Backend() *backend {
 		Secrets: []*framework.Secret{
 			secretCreds(&b),
 		},
-
-		Invalidate: b.invalidate,
-
-		Clean: func() {
-			b.ResetDB(nil)
-		},
 	}
 
-	return &b
+	return b.Backend
 }
 
 type backend struct {
@@ -52,17 +46,15 @@ type backend struct {
 }
 
 type sessionConfig struct {
-	Hosts           string `json:"hosts" structs:"hosts" mapstructure:"hosts"`
-	Username        string `json:"username" structs:"username" mapstructure:"username"`
-	Password        string `json:"password" structs:"password" mapstructure:"password"`
-	TLS             bool   `json:"tls" structs:"tls" mapstructure:"tls"`
-	InsecureTLS     bool   `json:"insecure_tls" structs:"insecure_tls" mapstructure:"insecure_tls"`
-	Certificate     string `json:"certificate" structs:"certificate" mapstructure:"certificate"`
-	PrivateKey      string `json:"private_key" structs:"private_key" mapstructure:"private_key"`
-	IssuingCA       string `json:"issuing_ca" structs:"issuing_ca" mapstructure:"issuing_ca"`
-	ProtocolVersion int    `json:"protocol_version" structs:"protocol_version" mapstructure:"protocol_version"`
-	ConnectTimeout  int    `json:"connect_timeout" structs:"connect_timeout" mapstructure:"connect_timeout"`
-	TLSMinVersion   string `json:"tls_min_version" structs:"tls_min_version" mapstructure:"tls_min_version"`
+	Hosts           string `json:"hosts" structs:"hosts"`
+	Username        string `json:"username" structs:"username"`
+	Password        string `json:"password" structs:"password"`
+	TLS             bool   `json:"tls" structs:"tls"`
+	InsecureTLS     bool   `json:"insecure_tls" structs:"insecure_tls"`
+	Certificate     string `json:"certificate" structs:"certificate"`
+	PrivateKey      string `json:"private_key" structs:"private_key"`
+	IssuingCA       string `json:"issuing_ca" structs:"issuing_ca"`
+	ProtocolVersion int    `json:"protocol_version" structs:"protocol_version"`
 }
 
 // DB returns the database connection.
@@ -89,12 +81,7 @@ func (b *backend) DB(s logical.Storage) (*gocql.Session, error) {
 		return nil, err
 	}
 
-	session, err := createSession(config, s)
-	//  Store the session in backend for reuse
-	b.session = session
-
-	return session, err
-
+	return createSession(config, s)
 }
 
 // ResetDB forces a connection next time DB() is called.
@@ -107,13 +94,6 @@ func (b *backend) ResetDB(newSession *gocql.Session) {
 	}
 
 	b.session = newSession
-}
-
-func (b *backend) invalidate(key string) {
-	switch key {
-	case "config/connection":
-		b.ResetDB(nil)
-	}
 }
 
 const backendHelp = `

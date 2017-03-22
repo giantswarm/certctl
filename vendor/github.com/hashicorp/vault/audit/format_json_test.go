@@ -9,8 +9,6 @@ import (
 
 	"errors"
 
-	"github.com/hashicorp/vault/helper/jsonutil"
-	"github.com/hashicorp/vault/helper/salt"
 	"github.com/hashicorp/vault/logical"
 )
 
@@ -19,7 +17,6 @@ func TestFormatJSON_formatRequest(t *testing.T) {
 		Auth   *logical.Auth
 		Req    *logical.Request
 		Err    error
-		Prefix string
 		Result string
 	}{
 		"auth, request": {
@@ -30,64 +27,27 @@ func TestFormatJSON_formatRequest(t *testing.T) {
 				Connection: &logical.Connection{
 					RemoteAddr: "127.0.0.1",
 				},
-				WrapInfo: &logical.RequestWrapInfo{
-					TTL: 60 * time.Second,
-				},
-				Headers: map[string][]string{
-					"foo": []string{"bar"},
-				},
+				WrapTTL: 60 * time.Second,
 			},
 			errors.New("this is an error"),
-			"",
-			testFormatJSONReqBasicStr,
-		},
-		"auth, request with prefix": {
-			&logical.Auth{ClientToken: "foo", Policies: []string{"root"}},
-			&logical.Request{
-				Operation: logical.UpdateOperation,
-				Path:      "/foo",
-				Connection: &logical.Connection{
-					RemoteAddr: "127.0.0.1",
-				},
-				WrapInfo: &logical.RequestWrapInfo{
-					TTL: 60 * time.Second,
-				},
-				Headers: map[string][]string{
-					"foo": []string{"bar"},
-				},
-			},
-			errors.New("this is an error"),
-			"@cee: ",
 			testFormatJSONReqBasicStr,
 		},
 	}
 
 	for name, tc := range cases {
 		var buf bytes.Buffer
-		formatter := AuditFormatter{
-			AuditFormatWriter: &JSONFormatWriter{
-				Prefix: tc.Prefix,
-			},
-		}
-		salter, _ := salt.NewSalt(nil, nil)
-		config := FormatterConfig{
-			Salt: salter,
-		}
-		if err := formatter.FormatRequest(&buf, config, tc.Auth, tc.Req, tc.Err); err != nil {
+		var format FormatJSON
+		if err := format.FormatRequest(&buf, tc.Auth, tc.Req, tc.Err); err != nil {
 			t.Fatalf("bad: %s\nerr: %s", name, err)
 		}
 
-		if !strings.HasPrefix(buf.String(), tc.Prefix) {
-			t.Fatalf("no prefix: %s \n log: %s\nprefix: %s", name, tc.Result, tc.Prefix)
-		}
-
-		var expectedjson = new(AuditRequestEntry)
-		if err := jsonutil.DecodeJSON([]byte(tc.Result), &expectedjson); err != nil {
+		var expectedjson = new(JSONRequestEntry)
+		if err := json.Unmarshal([]byte(tc.Result), &expectedjson); err != nil {
 			t.Fatalf("bad json: %s", err)
 		}
 
-		var actualjson = new(AuditRequestEntry)
-		if err := jsonutil.DecodeJSON([]byte(buf.String())[len(tc.Prefix):], &actualjson); err != nil {
+		var actualjson = new(JSONRequestEntry)
+		if err := json.Unmarshal([]byte(buf.String()), &actualjson); err != nil {
 			t.Fatalf("bad json: %s", err)
 		}
 
@@ -98,7 +58,7 @@ func TestFormatJSON_formatRequest(t *testing.T) {
 			t.Fatalf("unable to marshal json: %s", err)
 		}
 
-		if !strings.HasSuffix(strings.TrimSpace(buf.String()), string(expectedBytes)) {
+		if strings.TrimSpace(buf.String()) != string(expectedBytes) {
 			t.Fatalf(
 				"bad: %s\nResult:\n\n'%s'\n\nExpected:\n\n'%s'",
 				name, buf.String(), string(expectedBytes))
@@ -106,5 +66,5 @@ func TestFormatJSON_formatRequest(t *testing.T) {
 	}
 }
 
-const testFormatJSONReqBasicStr = `{"time":"2015-08-05T13:45:46Z","type":"request","auth":{"display_name":"","policies":["root"],"metadata":null},"request":{"operation":"update","path":"/foo","data":null,"wrap_ttl":60,"remote_address":"127.0.0.1","headers":{"foo":["bar"]}},"error":"this is an error"}
+const testFormatJSONReqBasicStr = `{"time":"2015-08-05T13:45:46Z","type":"request","auth":{"display_name":"","policies":["root"],"metadata":null},"request":{"operation":"update","path":"/foo","data":null,"wrap_ttl":60,"remote_address":"127.0.0.1"},"error":"this is an error"}
 `
