@@ -30,8 +30,3 @@ two
 EOS
 ,
     ]
-
-foo = [<<EOS
-one
-EOS
-    ]
