@@ -12,6 +12,11 @@ Images available at `registry.giantswarm.io/giantswarm/certctl`
 
 Clone the git repository: https://github.com/giantswarm/certctl.git
 
+## Installing `certctl`
+
+* Install [builder](https://github.com/giantswarm/builder)
+* Run `make`
+
 ## Docs
 
 For some usage example please see the docs: [usage.md](/docs/usage.md).
