@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -34,6 +35,9 @@ type issueFlags struct {
 	CrtFilePath string
 	KeyFilePath string
 	CAFilePath  string
+
+	// Attempts
+	FSWriteAttempts int
 }
 
 var (
@@ -70,6 +74,8 @@ func init() {
 	issueCmd.Flags().StringVar(&newIssueFlags.CrtFilePath, "crt-file", "", "File path used to write the generated public key to.")
 	issueCmd.Flags().StringVar(&newIssueFlags.KeyFilePath, "key-file", "", "File path used to write the generated private key to.")
 	issueCmd.Flags().StringVar(&newIssueFlags.CAFilePath, "ca-file", "", "File path used to write the issuing root CA to.")
+
+	issueCmd.Flags().IntVar(&newIssueFlags.FSWriteAttempts, "fs-write-attempts", 5, "Number of attempts to write certificate data to the file system.")
 }
 
 func issueValidate(newIssueFlags *issueFlags) error {
@@ -139,29 +145,40 @@ func issueRun(cmd *cobra.Command, args []string) {
 		log.Fatalf("%#v\n", maskAny(err))
 	}
 
-	err = os.MkdirAll(filepath.Dir(newIssueFlags.CrtFilePath), os.FileMode(0744))
-	if err != nil {
-		log.Fatalf("%#v\n", maskAny(err))
+	certs := map[string]string{
+		newIssueFlags.CrtFilePath: newIssueResponse.Certificate,
+		newIssueFlags.KeyFilePath: newIssueResponse.PrivateKey,
+		newIssueFlags.CAFilePath:  newIssueResponse.IssuingCA,
 	}
-	err = ioutil.WriteFile(newIssueFlags.CrtFilePath, []byte(newIssueResponse.Certificate), os.FileMode(0644))
-	if err != nil {
-		log.Fatalf("%#v\n", maskAny(err))
-	}
-	err = os.MkdirAll(filepath.Dir(newIssueFlags.KeyFilePath), os.FileMode(0744))
-	if err != nil {
-		log.Fatalf("%#v\n", maskAny(err))
-	}
-	err = ioutil.WriteFile(newIssueFlags.KeyFilePath, []byte(newIssueResponse.PrivateKey), os.FileMode(0644))
-	if err != nil {
-		log.Fatalf("%#v\n", maskAny(err))
-	}
-	err = os.MkdirAll(filepath.Dir(newIssueFlags.CAFilePath), os.FileMode(0744))
-	if err != nil {
-		log.Fatalf("%#v\n", maskAny(err))
-	}
-	err = ioutil.WriteFile(newIssueFlags.CAFilePath, []byte(newIssueResponse.IssuingCA), os.FileMode(0644))
-	if err != nil {
-		log.Fatalf("%#v\n", maskAny(err))
+	attemptCount := 0
+
+	{
+	Attempt:
+		for {
+			log.Printf("Attempt to write certificate data to the file system.\n")
+
+			attemptCount++
+			if attemptCount > newIssueFlags.FSWriteAttempts {
+				log.Fatalf("No more retries left. Stopping.\n")
+			}
+
+			for p, d := range certs {
+				err = os.MkdirAll(filepath.Dir(p), os.FileMode(0744))
+				if err != nil {
+					log.Printf("%#v\n", maskAny(err))
+					time.Sleep(1 * time.Second)
+					continue Attempt
+				}
+				err = ioutil.WriteFile(p, []byte(d), os.FileMode(0644))
+				if err != nil {
+					log.Printf("%#v\n", maskAny(err))
+					time.Sleep(1 * time.Second)
+					continue Attempt
+				}
+			}
+
+			break
+		}
 	}
 
 	fmt.Printf("Issued new signed certificate with the following serial number.\n")
