@@ -64,7 +64,7 @@ func (cs *certSigner) Issue(config spec.IssueConfig) (spec.IssueResponse, error)
 		// Create a role that can issue the requested set of Organizations if it does not already exist.
 		created, err := cs.IsRoleCreated(config.ClusterID, config.Organizations)
 		if err != nil {
-			return spec.IssueResponse{}, maskAny(err)
+			return spec.IssueResponse{}, microerror.Mask(err)
 		}
 		if !created {
 			data := map[string]interface{}{
@@ -77,7 +77,7 @@ func (cs *certSigner) Issue(config spec.IssueConfig) (spec.IssueResponse, error)
 
 			_, err = logicalStore.Write(writeRolePath(config.ClusterID, config.Organizations), data)
 			if err != nil {
-				return spec.IssueResponse{}, maskAny(err)
+				return spec.IssueResponse{}, microerror.Mask(err)
 			}
 		}
 	}
@@ -142,7 +142,7 @@ func (cs *certSigner) IsRoleCreated(clusterID string, organizations string) (boo
 	if IsNoVaultHandlerDefined(err) {
 		return false, nil
 	} else if err != nil {
-		return false, maskAny(err)
+		return false, microerror.Mask(err)
 	}
 
 	// In case there is not a single role for this PKI backend, secret is nil.
@@ -176,7 +176,7 @@ func (cs *certSigner) ListRoles(clusterID string) ([]string, error) {
 	if IsNoVaultHandlerDefined(err) {
 		return []string{}, nil
 	} else if err != nil {
-		return []string{}, maskAny(err)
+		return []string{}, microerror.Mask(err)
 	}
 
 	// In case there is not a single role for this PKI backend, secret is nil.
