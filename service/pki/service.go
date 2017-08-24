@@ -230,25 +230,6 @@ func (s *service) Create(config CreateConfig) error {
 		}
 	}
 
-	// Create a role for the mounted PKI backend, if it does not already exist.
-	created, err := s.IsRoleCreated(config.ClusterID)
-	if err != nil {
-		return microerror.Mask(err)
-	}
-	if !created {
-		data := map[string]interface{}{
-			"allowed_domains":    config.AllowedDomains,
-			"allow_subdomains":   "true",
-			"ttl":                config.TTL,
-			"allow_bare_domains": config.AllowBareDomains,
-		}
-
-		_, err = logicalBackend.Write(s.WriteRolePath(config.ClusterID), data)
-		if err != nil {
-			return microerror.Mask(err)
-		}
-	}
-
 	return nil
 }
 

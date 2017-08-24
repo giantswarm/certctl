@@ -69,22 +69,20 @@ func (cs *certSigner) Issue(config spec.IssueConfig) (spec.IssueResponse, error)
 		}
 	}
 
-	// If we want to set custom Organizations we have to ensure a role exists that
-	// can issue a cert with the desired Organizations before trying to issue a cert.
-	if config.Organizations != "" {
-		createRoleParams := role.CreateParams{
-			AllowBareDomains: config.AllowBareDomains,
-			AllowedDomains:   config.AllowedDomains,
-			AllowSubdomains:  true,
-			TTL:              config.RoleTTL,
-			Name:             roleName(config.ClusterID, config.Organizations),
-			Organizations:    config.Organizations,
-		}
+	// Ensure a role exists exists that can issue a cert with the desired Organizations
+	// before trying to issue a cert.
+	createRoleParams := role.CreateParams{
+		AllowBareDomains: config.AllowBareDomains,
+		AllowedDomains:   config.AllowedDomains,
+		AllowSubdomains:  true,
+		TTL:              config.RoleTTL,
+		Name:             roleName(config.ClusterID, config.Organizations),
+		Organizations:    config.Organizations,
+	}
 
-		err = roleService.Create(createRoleParams)
-		if err != nil {
-			return spec.IssueResponse{}, microerror.Mask(err)
-		}
+	err = roleService.Create(createRoleParams)
+	if err != nil {
+		return spec.IssueResponse{}, microerror.Mask(err)
 	}
 
 	// Create a client for issuing a new signed certificate.
