@@ -118,73 +118,6 @@ func (s *service) IsMounted(clusterID string) (bool, error) {
 	return true, nil
 }
 
-func (s *service) IsRoleCreated(clusterID string) (bool, error) {
-	// Create a client for the logical backend configured with the Vault token
-	// used for the current cluster's PKI backend.
-	logicalBackend := s.VaultClient.Logical()
-
-	// Check if a PKI for the given cluster ID exists.
-	secret, err := logicalBackend.List(s.ListRolesPath(clusterID))
-	if IsNoVaultHandlerDefined(err) {
-		return false, nil
-	} else if err != nil {
-		return false, microerror.Mask(err)
-	}
-
-	// In case there is not a single role for this PKI backend, secret is nil.
-	if secret == nil {
-		return false, nil
-	}
-
-	// When listing roles a list of role names is returned. Here we iterate over
-	// this list and if we find the desired role name, it means the role has
-	// already been created.
-	if keys, ok := secret.Data["keys"]; ok {
-		if list, ok := keys.([]interface{}); ok {
-			for _, k := range list {
-				if str, ok := k.(string); ok && str == s.RoleName(clusterID) {
-					return true, nil
-				}
-			}
-		}
-	}
-
-	return false, nil
-}
-
-func (s *service) VerifyPKISetup(clusterID string) (bool, error) {
-	mounted, err := s.IsMounted(clusterID)
-	if err != nil {
-		return false, microerror.Mask(err)
-	}
-	if !mounted {
-		return false, nil
-	}
-
-	caGenerated, err := s.IsCAGenerated(clusterID)
-	if err != nil {
-		return false, microerror.Mask(err)
-	}
-	if !caGenerated {
-		return false, nil
-	}
-
-	roleCreated, err := s.IsRoleCreated(clusterID)
-	if !roleCreated || err != nil {
-		return false, microerror.Mask(err)
-	}
-	if !roleCreated {
-		return false, nil
-	}
-
-	// PKI setup is valid.
-	return true, nil
-}
-
-func (s *service) RoleName(clusterID string) string {
-	return fmt.Sprintf("role-%s", clusterID)
-}
-
 func (s *service) Create(config CreateConfig) error {
 	// Create a client for the system backend configured with the Vault token
 	// used for the current cluster's PKI backend.
@@ -247,14 +180,6 @@ func (s *service) ListMountsPath(clusterID string) string {
 	return fmt.Sprintf("pki-%s", clusterID)
 }
 
-func (s *service) ListRolesPath(clusterID string) string {
-	return fmt.Sprintf("pki-%s/roles/", clusterID)
-}
-
 func (s *service) WriteCAPath(clusterID string) string {
 	return fmt.Sprintf("pki-%s/root/generate/internal", clusterID)
-}
-
-func (s *service) WriteRolePath(clusterID string) string {
-	return fmt.Sprintf("pki-%s/roles/%s", clusterID, s.RoleName(clusterID))
 }

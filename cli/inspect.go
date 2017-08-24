@@ -115,10 +115,6 @@ func inspectRun(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatalf("%#v\n", microerror.Mask(err))
 	}
-	roleCreated, err := pkiService.IsRoleCreated(newInspectFlags.ClusterID)
-	if err != nil {
-		log.Fatalf("%#v\n", microerror.Mask(err))
-	}
 	policyCreated, err := tokenService.IsPolicyCreated(newInspectFlags.ClusterID)
 	if err != nil {
 		log.Fatalf("%#v\n", microerror.Mask(err))
@@ -128,7 +124,6 @@ func inspectRun(cmd *cobra.Command, args []string) {
 	fmt.Printf("\n")
 	fmt.Printf("    PKI backend mounted: %t\n", mounted)
 	fmt.Printf("    Root CA generated:   %t\n", generated)
-	fmt.Printf("    PKI role created:    %t\n", roleCreated)
 	fmt.Printf("    PKI policy created:  %t\n", policyCreated)
 	fmt.Printf("\n")
 	fmt.Printf("Tokens may have been generated for this cluster. Created tokens\n")
