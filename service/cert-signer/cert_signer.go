@@ -3,11 +3,13 @@ package certsigner
 import (
 	"crypto/sha1"
 	"fmt"
+	"log"
 	"sort"
 	"strings"
 
 	vaultclient "github.com/hashicorp/vault/api"
 
+	"github.com/giantswarm/certctl/service/role"
 	"github.com/giantswarm/certctl/service/spec"
 	"github.com/giantswarm/microerror"
 )
@@ -55,32 +57,38 @@ type certSigner struct {
 }
 
 func (cs *certSigner) Issue(config spec.IssueConfig) (spec.IssueResponse, error) {
-	// Create a client for issuing a new signed certificate.
-	logicalStore := cs.VaultClient.Logical()
+	var roleService role.Service
+	var err error
+	{
+		roleServiceConfig := role.DefaultConfig()
+		roleServiceConfig.VaultClient = cs.VaultClient
+		roleServiceConfig.PKIMountpoint = fmt.Sprintf("pki-%s", config.ClusterID)
+		roleService, err = role.New(roleServiceConfig)
+		if err != nil {
+			log.Fatalf("%#v\n", microerror.Mask(err))
+		}
+	}
 
-	// If we want to issue this certificate with custom Organizations we'll need
-	// to create (or reuse) a role specifically for those Organizations.
+	// If we want to set custom Organizations we have to ensure a role exists that
+	// can issue a cert with the desired Organizations before trying to issue a cert.
 	if config.Organizations != "" {
-		// Create a role that can issue the requested set of Organizations if it does not already exist.
-		created, err := cs.IsRoleCreated(config.ClusterID, config.Organizations)
+		createRoleParams := role.CreateParams{
+			AllowBareDomains: config.AllowBareDomains,
+			AllowedDomains:   config.AllowedDomains,
+			AllowSubdomains:  true,
+			TTL:              config.RoleTTL,
+			Name:             roleName(config.ClusterID, config.Organizations),
+			Organizations:    config.Organizations,
+		}
+
+		err = roleService.Create(createRoleParams)
 		if err != nil {
 			return spec.IssueResponse{}, microerror.Mask(err)
 		}
-		if !created {
-			data := map[string]interface{}{
-				"allowed_domains":    config.AllowedDomains,
-				"allow_subdomains":   "true",
-				"ttl":                config.RoleTTL,
-				"allow_bare_domains": config.AllowBareDomains,
-				"organization":       config.Organizations,
-			}
-
-			_, err = logicalStore.Write(writeRolePath(config.ClusterID, config.Organizations), data)
-			if err != nil {
-				return spec.IssueResponse{}, microerror.Mask(err)
-			}
-		}
 	}
+
+	// Create a client for issuing a new signed certificate.
+	logicalStore := cs.VaultClient.Logical()
 
 	// Generate a certificate for the PKI backend signed by the certificate
 	// authority associated with the configured cluster ID.
@@ -132,76 +140,6 @@ func (cs *certSigner) SignedPath(clusterID string, organizations string) string 
 	return fmt.Sprintf("pki-%s/issue/%s", clusterID, roleName(clusterID, organizations))
 }
 
-func (cs *certSigner) IsRoleCreated(clusterID string, organizations string) (bool, error) {
-	// Create a client for the logical backend configured with the Vault token
-	// used for the current cluster's PKI backend.
-	logicalBackend := cs.VaultClient.Logical()
-
-	// Check if a PKI for the given cluster ID exists.
-	secret, err := logicalBackend.List(listRolesPath(clusterID))
-	if IsNoVaultHandlerDefined(err) {
-		return false, nil
-	} else if err != nil {
-		return false, microerror.Mask(err)
-	}
-
-	// In case there is not a single role for this PKI backend, secret is nil.
-	if secret == nil {
-		return false, nil
-	}
-
-	// When listing roles a list of role names is returned. Here we iterate over
-	// this list and if we find the desired role name, it means the role has
-	// already been created.
-	if keys, ok := secret.Data["keys"]; ok {
-		if list, ok := keys.([]interface{}); ok {
-			for _, k := range list {
-				if str, ok := k.(string); ok && str == roleName(clusterID, organizations) {
-					return true, nil
-				}
-			}
-		}
-	}
-
-	return false, nil
-}
-
-func (cs *certSigner) ListRoles(clusterID string) ([]string, error) {
-	// Create a client for the logical backend configured with the Vault token
-	// used for the current cluster's PKI backend.
-	logicalBackend := cs.VaultClient.Logical()
-
-	// Check if a PKI for the given cluster ID exists.
-	secret, err := logicalBackend.List(listRolesPath(clusterID))
-	if IsNoVaultHandlerDefined(err) {
-		return []string{}, nil
-	} else if err != nil {
-		return []string{}, microerror.Mask(err)
-	}
-
-	// In case there is not a single role for this PKI backend, secret is nil.
-	if secret == nil {
-		return []string{}, nil
-	}
-
-	roles := make([]string, 0)
-
-	// When listing roles a list of role names is returned. Here we iterate over
-	// this list and if we find the desired role name, it means the role has
-	// already been created.
-	if keys, ok := secret.Data["keys"]; ok {
-		if list, ok := keys.([]interface{}); ok {
-			for _, k := range list {
-				if str, ok := k.(string); ok {
-					roles = append(roles, str)
-				}
-			}
-		}
-	}
-
-	return roles, nil
-}
-
 func roleName(clusterID string, organizations string) string {
 	if organizations == "" {
 		// If organizations isn't set, use the role that was created when the PKI
@@ -231,10 +169,6 @@ func computeRoleHash(organizations string) string {
 	bs := h.Sum(nil)
 
 	return fmt.Sprintf("%x", bs)
-}
-
-func listRolesPath(clusterID string) string {
-	return fmt.Sprintf("pki-%s/roles/", clusterID)
 }
 
 func writeRolePath(clusterID string, organizations string) string {
