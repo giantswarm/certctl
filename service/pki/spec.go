@@ -50,6 +50,17 @@ type Service interface {
 	// cluster ID is mounted.
 	IsMounted(clusterID string) (bool, error)
 
+	// IsRoleCreated checks whether the PKI role associated with the given
+	// cluster ID is created.
+	IsRoleCreated(clusterID string) (bool, error)
+
+	// VerifyPKISetup checks if IsMounted, IsCAGenerated and IsRoleCreated are all true
+	// for the given cluster ID.
+	VerifyPKISetup(clusterID string) (bool, error)
+
+	// RoleName returns the name used to register the PKI backend's role.
+	RoleName(clusterID string) string
+
 	// Path management.
 
 	// MountPKIPath returns the path under which a cluster's PKI backend is
@@ -68,4 +79,12 @@ type Service interface {
 	//     pki-<clusterID>/root/generate/exported
 	//
 	WriteCAPath(clusterID string) string
+
+	// WriteRolePath returns the path under which a role is registered. This is
+	// very specific to Vault. The path structure is the following. See also
+	// https://github.com/hashicorp/vault/blob/6f0f46deb622ba9c7b14b2ec0be24cab3916f3d8/website/source/docs/secrets/pki/index.html.md#pkiroles.
+	//
+	//     pki-<clusterID>/roles/role-<clusterID>
+	//
+	WriteRolePath(clusterID string) string
 }
