@@ -165,6 +165,7 @@ func setupRun(cmd *cobra.Command, args []string) {
 	fmt.Printf("\n")
 	fmt.Printf("    - PKI backend mounted\n")
 	fmt.Printf("    - Root CA generated\n")
+	fmt.Printf("    - PKI role created\n")
 	fmt.Printf("    - PKI policy created\n")
 	fmt.Printf("\n")
 	fmt.Printf("The following tokens have been generated for this cluster:\n")
