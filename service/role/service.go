@@ -9,7 +9,7 @@ import (
 
 // Config defines configurable aspects (such as dependencies) of this service.
 type Config struct {
-	// Config
+	// Settings.
 	PKIMountpoint string
 
 	// Dependencies.
@@ -18,17 +18,7 @@ type Config struct {
 
 // DefaultConfig returns a default configuration that can be used to create this service.
 func DefaultConfig() Config {
-	vaultClientConfig := vaultclient.DefaultConfig()
-	vaultClientConfig.Address = "http://127.0.0.1:8200"
-	vaultClient, err := vaultclient.NewClient(vaultClientConfig)
-	if err != nil {
-		panic(err)
-	}
-
-	config := Config{
-		// Dependencies.
-		VaultClient: vaultClient,
-	}
+	config := Config{}
 
 	return config
 }

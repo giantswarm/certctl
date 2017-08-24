@@ -3,7 +3,6 @@ package certsigner
 import (
 	"crypto/sha1"
 	"fmt"
-	"log"
 	"sort"
 	"strings"
 
@@ -65,7 +64,7 @@ func (cs *certSigner) Issue(config spec.IssueConfig) (spec.IssueResponse, error)
 		roleServiceConfig.PKIMountpoint = fmt.Sprintf("pki-%s", config.ClusterID)
 		roleService, err = role.New(roleServiceConfig)
 		if err != nil {
-			log.Fatalf("%#v\n", microerror.Mask(err))
+			return spec.IssueResponse{}, microerror.Mask(err)
 		}
 	}
 
