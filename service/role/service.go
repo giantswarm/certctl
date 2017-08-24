@@ -9,11 +9,11 @@ import (
 
 // Config defines configurable aspects (such as dependencies) of this service.
 type Config struct {
-	// Settings.
-	PKIMountpoint string
-
 	// Dependencies.
 	VaultClient *vaultclient.Client
+
+	// Settings.
+	PKIMountpoint string
 }
 
 // DefaultConfig returns a default configuration that can be used to create this service.
@@ -35,20 +35,25 @@ func New(config Config) (Service, error) {
 	}
 
 	service := &service{
-		Config: config,
+		vaultClient:   config.VaultClient,
+		pkiMountpoint: config.PKIMountpoint,
 	}
 
 	return service, nil
 }
 
 type service struct {
-	Config
+	// Dependencies.
+	vaultClient *vaultclient.Client
+
+	// Settings.
+	pkiMountpoint string
 }
 
 // Create creates a role if it doesn't exist yet. Creating roles is idempotent
 // in the vault api, so no need to check if it already exists.
 func (s *service) Create(params CreateParams) error {
-	logicalStore := s.VaultClient.Logical()
+	logicalStore := s.vaultClient.Logical()
 
 	data := map[string]interface{}{
 		"allowed_domains":    params.AllowedDomains,
@@ -58,7 +63,7 @@ func (s *service) Create(params CreateParams) error {
 		"organization":       params.Organizations,
 	}
 
-	_, err := logicalStore.Write(fmt.Sprintf("%s/roles/%s", s.PKIMountpoint, params.Name), data)
+	_, err := logicalStore.Write(fmt.Sprintf("%s/roles/%s", s.pkiMountpoint, params.Name), data)
 	if err != nil {
 		return microerror.Mask(err)
 	}
@@ -68,7 +73,7 @@ func (s *service) Create(params CreateParams) error {
 func (s *service) IsRoleCreated(roleName string) (bool, error) {
 	// Create a client for the logical backend configured with the Vault token
 	// used for the current cluster's PKI backend.
-	logicalBackend := s.VaultClient.Logical()
+	logicalBackend := s.vaultClient.Logical()
 
 	// Check if a PKI for the given cluster ID exists.
 	secret, err := logicalBackend.List(s.listRolesPath())
@@ -100,5 +105,5 @@ func (s *service) IsRoleCreated(roleName string) (bool, error) {
 }
 
 func (s *service) listRolesPath() string {
-	return fmt.Sprintf("%s/roles/", s.PKIMountpoint)
+	return fmt.Sprintf("%s/roles/", s.pkiMountpoint)
 }
