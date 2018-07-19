@@ -1,2 +1,4 @@
 .gobuild/
 certctl
+.e2e-harness/
+integration/test/**/certctl-e2e

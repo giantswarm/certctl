@@ -34,6 +34,10 @@
   name = "github.com/giantswarm/microerror"
 
 [[constraint]]
+  branch = "master"
+  name = "github.com/giantswarm/e2e-harness"
+
+[[constraint]]
   name = "github.com/hashicorp/vault"
   version = "0.7.3"
 
