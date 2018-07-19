@@ -141,7 +141,7 @@ func getVaultAddr() (string, error) {
 		return "", microerror.Mask(err)
 	}
 
-	// we will access Vault service from the test container using the k8s API
+	// We will access Vault service from the test container using the k8s API
 	// server address and the service NodePort.
 	restCfg := f.RestConfig()
 	hostURL, err := url.Parse(restCfg.Host)
