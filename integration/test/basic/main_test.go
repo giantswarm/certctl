@@ -13,12 +13,13 @@ import (
 
 var (
 	f *framework.Host
+	l micrologger.Logger
 )
 
 func init() {
 	var err error
 
-	l, err := micrologger.New(micrologger.Config{})
+	l, err = micrologger.New(micrologger.Config{})
 	if err != nil {
 		panic(err.Error())
 	}
