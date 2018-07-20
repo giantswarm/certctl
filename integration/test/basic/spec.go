@@ -10,6 +10,4 @@ const (
 	defaultCertCommonName = "admin." + defaultCommonName
 	defaultCATTL          = "86400h"
 	defaultTokenTTL       = "720h"
-
-	vaultToken = "myToken"
 )

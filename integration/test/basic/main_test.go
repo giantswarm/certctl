@@ -8,6 +8,7 @@ import (
 	"github.com/giantswarm/e2e-harness/pkg/framework"
 	"github.com/giantswarm/micrologger"
 
+	"github.com/giantswarm/certctl/integration/env"
 	"github.com/giantswarm/certctl/integration/setup"
 )
 
@@ -27,7 +28,8 @@ func init() {
 	f, err = framework.NewHost(framework.HostConfig{
 		Logger: l,
 
-		ClusterID: defaultClusterID,
+		ClusterID:  defaultClusterID,
+		VaultToken: env.VaultToken(),
 	})
 	if err != nil {
 		panic(err.Error())

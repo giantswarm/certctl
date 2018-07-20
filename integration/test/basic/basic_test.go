@@ -16,6 +16,7 @@ import (
 	vaultclient "github.com/hashicorp/vault/api"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/giantswarm/certctl/integration/env"
 	certsigner "github.com/giantswarm/certctl/service/cert-signer"
 	"github.com/giantswarm/certctl/service/pki"
 	"github.com/giantswarm/certctl/service/spec"
@@ -99,7 +100,7 @@ func issueCerts(client *vaultclient.Client) error {
 func getVaultClient(vaultAddr string) (*vaultclient.Client, error) {
 	newVaultFactoryConfig := vaultfactory.DefaultConfig()
 	newVaultFactoryConfig.Address = vaultAddr
-	newVaultFactoryConfig.AdminToken = vaultToken
+	newVaultFactoryConfig.AdminToken = env.VaultToken()
 	newVaultFactoryConfig.TLS = &vaultclient.TLSConfig{}
 	newVaultFactory, err := vaultfactory.New(newVaultFactoryConfig)
 	if err != nil {
@@ -172,7 +173,6 @@ func createToken(svc token.Service) (string, error) {
 }
 
 func getVaultAddr() (string, error) {
-
 	vaultSvc, err := f.K8sClient().
 		CoreV1().
 		Services("default").
