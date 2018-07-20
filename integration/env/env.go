@@ -22,7 +22,6 @@ func init() {
 	if vaultToken == "" {
 		panic(fmt.Sprintf("env var %q must not be empty", EnvVaultToken))
 	}
-
 }
 
 func VaultToken() string {
