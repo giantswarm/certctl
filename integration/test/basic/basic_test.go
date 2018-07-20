@@ -16,12 +16,14 @@ import (
 	vaultclient "github.com/hashicorp/vault/api"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	certsigner "github.com/giantswarm/certctl/service/cert-signer"
 	"github.com/giantswarm/certctl/service/pki"
+	"github.com/giantswarm/certctl/service/spec"
 	"github.com/giantswarm/certctl/service/token"
 	"github.com/giantswarm/certctl/service/vault-factory"
 )
 
-func TestSetup(t *testing.T) {
+func TestIssuance(t *testing.T) {
 	vaultAddr, err := getVaultAddr()
 	if err != nil {
 		t.Fatalf("could not create Vault address, %#v", err)
@@ -43,6 +45,13 @@ func TestSetup(t *testing.T) {
 	}
 
 	l.Log("level", "debug", "message", fmt.Sprintf("setup Vault PKI successful, returned token %q", token))
+
+	client.SetToken(token)
+
+	err = issueCerts(client)
+	if err != nil {
+		t.Fatalf("could not issue signed certificates, %#v", err)
+	}
 }
 
 func setUp(client *vaultclient.Client) (string, error) {
@@ -66,6 +75,25 @@ func setUp(client *vaultclient.Client) (string, error) {
 		return "", microerror.Mask(err)
 	}
 	return token, nil
+}
+
+func issueCerts(client *vaultclient.Client) error {
+	certSigner, err := getCertSigner(client)
+	if err != nil {
+		return microerror.Mask(err)
+	}
+
+	newIssueConfig := spec.IssueConfig{
+		ClusterID:  defaultClusterID,
+		CommonName: defaultCertCommonName,
+		TTL:        defaultCertTTL,
+		RoleTTL:    defaultCertTokenTTL,
+	}
+	_, err = certSigner.Issue(newIssueConfig)
+	if err != nil {
+		return microerror.Mask(err)
+	}
+	return nil
 }
 
 func getVaultClient(vaultAddr string) (*vaultclient.Client, error) {
@@ -106,10 +134,22 @@ func getTokenService(client *vaultclient.Client) (token.Service, error) {
 	return tokenService, nil
 }
 
+func getCertSigner(client *vaultclient.Client) (spec.CertSigner, error) {
+	newCertSignerConfig := certsigner.DefaultConfig()
+	newCertSignerConfig.VaultClient = client
+	newCertSigner, err := certsigner.New(newCertSignerConfig)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	return newCertSigner, nil
+}
+
 func createPKIBackend(svc pki.Service) error {
 	createConfig := pki.CreateConfig{
-		ClusterID: defaultClusterID,
-		TTL:       defaultCATTL,
+		AllowedDomains: defaultCommonName,
+		ClusterID:      defaultClusterID,
+		CommonName:     defaultCommonName,
+		TTL:            defaultCATTL,
 	}
 	err := svc.Create(createConfig)
 	if err != nil {
