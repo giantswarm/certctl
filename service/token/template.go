@@ -16,7 +16,10 @@ type pkiIssuePolicyContext struct {
 // a Vault PKI backend of a cluster ID.
 var pkiIssuePolicyTemplate = `
 	path "pki-{{.ClusterID}}/issue/role-{{.ClusterID}}" {
-		policy = "write"
+		capabilities = ["create", "update", "delete"]
+	}
+	path "pki-{{.ClusterID}}/roles/" {
+		capabilities = ["list"]
 	}
 `
 
