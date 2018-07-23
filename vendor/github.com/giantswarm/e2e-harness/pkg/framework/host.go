@@ -57,6 +57,9 @@ func NewHost(c HostConfig) (*Host, error) {
 	if c.ClusterID == "" {
 		return nil, microerror.Maskf(invalidConfigError, "%T.ClusterID must not be empty", c)
 	}
+	if c.VaultToken == "" {
+		return nil, microerror.Maskf(invalidConfigError, "%T.VaultToken must not be empty", c)
+	}
 
 	restConfig, err := clientcmd.BuildConfigFromFlags("", harness.DefaultKubeConfig)
 	if err != nil {
@@ -137,7 +140,7 @@ func (h *Host) CreateNamespace(ns string) error {
 		return microerror.Mask(err)
 	}
 
-	activeNamespace := func() error {
+	o := func() error {
 		ns, err := h.k8sClient.CoreV1().
 			Namespaces().
 			Get(ns, metav1.GetOptions{})
@@ -154,7 +157,13 @@ func (h *Host) CreateNamespace(ns string) error {
 		return nil
 	}
 
-	return waitFor(activeNamespace)
+	n := newNotify("namespace active")
+	err = backoff.RetryNotify(o, h.backoff, n)
+	if err != nil {
+		return microerror.Mask(err)
+	}
+
+	return nil
 }
 
 func (h *Host) DeleteGuestCluster(name, cr, logEntry string) error {
@@ -249,8 +258,9 @@ func (h *Host) InstallResource(name, values, version string, conditions ...func(
 		return microerror.Mask(err)
 	}
 
-	for _, c := range conditions {
-		err = waitFor(c)
+	for i, c := range conditions {
+		n := newNotify(fmt.Sprintf("condition %d active", i))
+		err = backoff.RetryNotify(c, h.backoff, n)
 		if err != nil {
 			return microerror.Mask(err)
 		}
@@ -368,7 +378,7 @@ func (h *Host) Teardown() {
 func (h *Host) WaitForPodLog(namespace, needle, podName string) error {
 	needle = os.ExpandEnv(needle)
 
-	timeout := time.After(defaultTimeout * time.Second)
+	timeout := time.After(LongMaxWait)
 
 	req := h.k8sClient.CoreV1().
 		RESTClient().
@@ -416,10 +426,6 @@ func (h *Host) crd(crdName string) func() error {
 }
 
 func (h *Host) installVault() error {
-	if h.vaultToken == "" {
-		return microerror.Mask(missingVaultTokenError)
-	}
-
 	operation := func() error {
 		// NOTE we ignore errors here because we cannot get really useful error
 		// handling done. This here should anyway only be a quick fix until we use
@@ -439,7 +445,14 @@ func (h *Host) installVault() error {
 		return microerror.Mask(err)
 	}
 
-	return waitFor(h.runningPod("default", "app=vault"))
+	o := h.runningPod("default", "app=vault")
+	n := newNotify("vault pod running")
+	err = backoff.RetryNotify(o, h.backoff, n)
+	if err != nil {
+		return microerror.Mask(err)
+	}
+
+	return nil
 }
 
 func (h *Host) runningPod(namespace, labelSelector string) func() error {
