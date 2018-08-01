@@ -8,14 +8,18 @@ import (
 	"github.com/juju/errgo"
 )
 
-var invalidConfigError = microerror.New("invalid config")
+var invalidConfigError = &microerror.Error{
+	Kind: "invalidConfigError",
+}
 
 // IsInvalidConfig asserts invalidConfigError.
 func IsInvalidConfig(err error) bool {
 	return microerror.Cause(err) == invalidConfigError
 }
 
-var keyPairNotFoundError = microerror.New("key pair not found")
+var keyPairNotFoundError = &microerror.Error{
+	Kind: "keyPairNotFoundError",
+}
 
 // IsKeyPairNotFound asserts keyPairNotFoundError.
 func IsKeyPairNotFound(err error) bool {
