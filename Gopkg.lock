@@ -60,7 +60,7 @@
     "pkg/harness",
   ]
   pruneopts = "UT"
-  revision = "52bca47e762aaa93c4e9742020f7719942263ada"
+  revision = "8c4c798088217968915821ef7ffb4d11d8add062"
 
 [[projects]]
   branch = "master"
@@ -408,7 +408,7 @@
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
   pruneopts = "UT"
-  revision = "e3636079e1a4c1f337f212cc5cd2aca108f6c900"
+  revision = "7c1a557ab941a71c619514f229f0b27ccb0c27cf"
 
 [[projects]]
   branch = "master"
