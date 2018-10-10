@@ -34,7 +34,7 @@
   name = "github.com/giantswarm/microerror"
 
 [[constraint]]
-  branch = "master"
+  branch = "pkg-release"
   name = "github.com/giantswarm/e2e-harness"
 
 [[constraint]]
