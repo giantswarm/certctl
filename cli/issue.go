@@ -137,14 +137,15 @@ func issueRun(cmd *cobra.Command, args []string) {
 
 	// Generate a new signed certificate.
 	newIssueConfig := spec.IssueConfig{
-		ClusterID:      newIssueFlags.ClusterID,
-		CommonName:     newIssueFlags.CommonName,
-		Organizations:  newIssueFlags.Organizations,
-		AllowedDomains: newIssueFlags.AllowedDomains,
-		IPSANs:         newIssueFlags.IPSANs,
-		AltNames:       newIssueFlags.AltNames,
-		TTL:            newIssueFlags.TTL,
-		RoleTTL:        newIssueFlags.RoleTTL,
+		ClusterID:        newIssueFlags.ClusterID,
+		CommonName:       newIssueFlags.CommonName,
+		Organizations:    newIssueFlags.Organizations,
+		AllowedDomains:   newIssueFlags.AllowedDomains,
+		AllowBareDomains: newIssueFlags.AllowBareDomains,
+		IPSANs:           newIssueFlags.IPSANs,
+		AltNames:         newIssueFlags.AltNames,
+		TTL:              newIssueFlags.TTL,
+		RoleTTL:          newIssueFlags.RoleTTL,
 	}
 	newIssueResponse, err := newCertSigner.Issue(newIssueConfig)
 	if err != nil {
