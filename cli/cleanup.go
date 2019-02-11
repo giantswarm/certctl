@@ -111,6 +111,10 @@ func cleanupRun(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatalf("%#v\n", microerror.Mask(err))
 	}
+	err = tokenService.DeleteOrgPolicy(newCleanupFlags.ClusterID)
+	if err != nil {
+		log.Fatalf("%#v\n", microerror.Mask(err))
+	}
 	err = tokenService.DeletePolicy(newCleanupFlags.ClusterID)
 	if err != nil {
 		log.Fatalf("%#v\n", microerror.Mask(err))
