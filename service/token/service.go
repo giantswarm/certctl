@@ -155,7 +155,7 @@ func (s *service) DeleteOrgPolicy(clusterID string) error {
 	sysBackend := s.VaultClient.Sys()
 
 	// Delete the policy by name if it is created.
-	created, err := s.IsPolicyCreated(clusterID)
+	created, err := s.IsOrgPolicyCreated(clusterID)
 	if err != nil {
 		return microerror.Mask(err)
 	}
