@@ -14,6 +14,7 @@ type pkiIssuePolicyContext struct {
 // pkiIssueOrgPolicyContext is the template context provided to the rendering of
 // the pkiIssueOrgPolicyTemplate.
 type pkiIssueOrgPolicyContext struct {
+	ClusterID             string
 	OrganizationsRoleHash string
 }
 

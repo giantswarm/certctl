@@ -116,7 +116,7 @@ func (s *service) CreateOrgPolicy(clusterID string) error {
 	// Create organization policy name and HCL policy rules.
 	orgPolicyName := s.OrgPolicyName(clusterID)
 	organizationsRoleHash := computeRoleHash(systemMastersOrganizations)
-	rules, err := execTemplate(pkiIssueOrgPolicyTemplate, pkiIssueOrgPolicyContext{OrganizationsRoleHash: organizationsRoleHash})
+	rules, err := execTemplate(pkiIssueOrgPolicyTemplate, pkiIssueOrgPolicyContext{ClusterID: clusterID, OrganizationsRoleHash: organizationsRoleHash})
 	if err != nil {
 		return microerror.Mask(err)
 	}
