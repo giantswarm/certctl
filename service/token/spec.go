@@ -24,6 +24,11 @@ type Service interface {
 	// certificates with respect to the given configuration.
 	Create(config CreateConfig) ([]string, error)
 
+	// CreateOrgPolicy creates a new policy to restrict access to only being able to
+	// issue signed certificates on the Vault PKI backend specific to the given
+	// cluster ID and organization.
+	CreateOrgPolicy(clusterID string) error
+
 	// CreatePolicy creates a new policy to restrict access to only being able to
 	// issue signed certificates on the Vault PKI backend specific to the given
 	// cluster ID. Here the given cluster ID is used to create the policy name and
@@ -32,11 +37,21 @@ type Service interface {
 	// to some Vault token.
 	CreatePolicy(clusterID string) error
 
+	// DeleteOrgPolicy removes an org policy from Vault using its name.
+	DeleteOrgPolicy(clusterID string) error
+
 	// DeletePolicy removes a policy from Vault using its name.
 	DeletePolicy(clusterID string) error
 
+	// IsOrgPolicyCreated checks whether the PKI org issue policy already exists.
+	IsOrgPolicyCreated(clusterID string) (bool, error)
+
 	// IsPolicyCreated checks whether the PKI issue policy already exists.
 	IsPolicyCreated(clusterID string) (bool, error)
+
+	// OrgPolicyName returns the name of an org policy used to restrict access to Vault
+	// for PKI issue requests. This policy is scoped to the given cluster ID.
+	OrgPolicyName(clusterID string) string
 
 	// PolicyName returns the name of a policy used to restrict access to Vault
 	// for PKI issue requests. This policy is scoped to the given cluster ID.
