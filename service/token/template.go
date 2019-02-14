@@ -37,6 +37,9 @@ var pkiIssueOrgPolicyTemplate = `
 	path "pki-{{.ClusterID}}/issue/role-org-{{.OrganizationsRoleHash}}" {
 		capabilities = ["create", "update", "delete"]
 	}
+	path "pki-{{.ClusterID}}/roles/role-org-{{.OrganizationsRoleHash}}" {
+		capabilities = ["create", "update", "delete"]
+	}
 `
 
 func execTemplate(t string, v interface{}) (string, error) {
