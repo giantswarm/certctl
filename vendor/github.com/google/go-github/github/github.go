@@ -54,20 +54,17 @@ const (
 	// https://developer.github.com/changes/2016-04-06-deployment-and-deployment-status-enhancements/
 	mediaTypeDeploymentStatusPreview = "application/vnd.github.ant-man-preview+json"
 
+	// https://developer.github.com/changes/2018-10-16-deployments-environments-states-and-auto-inactive-updates/
+	mediaTypeExpandDeploymentStatusPreview = "application/vnd.github.flash-preview+json"
+
 	// https://developer.github.com/changes/2016-02-19-source-import-preview-api/
 	mediaTypeImportPreview = "application/vnd.github.barred-rock-preview"
 
 	// https://developer.github.com/changes/2016-05-12-reactions-api-preview/
 	mediaTypeReactionsPreview = "application/vnd.github.squirrel-girl-preview"
 
-	// https://developer.github.com/changes/2016-04-04-git-signing-api-preview/
-	mediaTypeGitSigningPreview = "application/vnd.github.cryptographer-preview+json"
-
 	// https://developer.github.com/changes/2016-05-23-timeline-preview-api/
 	mediaTypeTimelinePreview = "application/vnd.github.mockingbird-preview+json"
-
-	// https://developer.github.com/changes/2016-06-14-repository-invitations/
-	mediaTypeRepositoryInvitationsPreview = "application/vnd.github.swamp-thing-preview+json"
 
 	// https://developer.github.com/changes/2016-07-06-github-pages-preiew-api/
 	mediaTypePagesPreview = "application/vnd.github.mister-fantastic-preview+json"
@@ -122,6 +119,30 @@ const (
 
 	// https://developer.github.com/enterprise/2.13/v3/repos/pre_receive_hooks/
 	mediaTypePreReceiveHooksPreview = "application/vnd.github.eye-scream-preview"
+
+	// https://developer.github.com/changes/2018-02-22-protected-branches-required-signatures/
+	mediaTypeSignaturePreview = "application/vnd.github.zzzax-preview+json"
+
+	// https://developer.github.com/changes/2018-09-05-project-card-events/
+	mediaTypeProjectCardDetailsPreview = "application/vnd.github.starfox-preview+json"
+
+	// https://developer.github.com/changes/2018-12-18-interactions-preview/
+	mediaTypeInteractionRestrictionsPreview = "application/vnd.github.sombra-preview+json"
+
+	// https://developer.github.com/changes/2019-02-14-draft-pull-requests/
+	mediaTypeDraftPreview = "application/vnd.github.shadow-cat-preview+json"
+
+	// https://developer.github.com/changes/2019-03-14-enabling-disabling-pages/
+	mediaTypeEnablePagesAPIPreview = "application/vnd.github.switcheroo-preview+json"
+
+	// https://developer.github.com/changes/2019-04-24-vulnerability-alerts/
+	mediaTypeRequiredVulnerabilityAlertsPreview = "application/vnd.github.dorian-preview+json"
+
+	// https://developer.github.com/changes/2019-05-29-update-branch-api/
+	mediaTypeUpdatePullRequestBranchPreview = "application/vnd.github.lydian-preview+json"
+
+	// https://developer.github.com/changes/2019-04-11-pulls-branches-for-commit/
+	mediaTypeListPullsOrBranchesForCommitPreview = "application/vnd.github.groot-preview+json"
 )
 
 // A Client manages communication with the GitHub API.
@@ -154,6 +175,7 @@ type Client struct {
 	Gists          *GistsService
 	Git            *GitService
 	Gitignores     *GitignoresService
+	Interactions   *InteractionsService
 	Issues         *IssuesService
 	Licenses       *LicensesService
 	Marketplace    *MarketplaceService
@@ -184,7 +206,9 @@ type ListOptions struct {
 
 // UploadOptions specifies the parameters to methods that support uploads.
 type UploadOptions struct {
-	Name string `url:"name,omitempty"`
+	Name      string `url:"name,omitempty"`
+	Label     string `url:"label,omitempty"`
+	MediaType string `url:"-"`
 }
 
 // RawType represents type of raw format of a request instead of JSON.
@@ -226,12 +250,12 @@ func addOptions(s string, opt interface{}) (string, error) {
 }
 
 // NewClient returns a new GitHub API client. If a nil httpClient is
-// provided, http.DefaultClient will be used. To use API methods which require
+// provided, a new http.Client will be used. To use API methods which require
 // authentication, provide an http.Client that will perform the authentication
 // for you (such as that provided by the golang.org/x/oauth2 library).
 func NewClient(httpClient *http.Client) *Client {
 	if httpClient == nil {
-		httpClient = http.DefaultClient
+		httpClient = &http.Client{}
 	}
 	baseURL, _ := url.Parse(defaultBaseURL)
 	uploadURL, _ := url.Parse(uploadBaseURL)
@@ -246,6 +270,7 @@ func NewClient(httpClient *http.Client) *Client {
 	c.Gists = (*GistsService)(&c.common)
 	c.Git = (*GitService)(&c.common)
 	c.Gitignores = (*GitignoresService)(&c.common)
+	c.Interactions = (*InteractionsService)(&c.common)
 	c.Issues = (*IssuesService)(&c.common)
 	c.Licenses = (*LicensesService)(&c.common)
 	c.Marketplace = &MarketplaceService{client: c}
@@ -264,7 +289,7 @@ func NewClient(httpClient *http.Client) *Client {
 // NewEnterpriseClient returns a new GitHub API client with provided
 // base URL and upload URL (often the same URL).
 // If either URL does not have a trailing slash, one is added automatically.
-// If a nil httpClient is provided, http.DefaultClient will be used.
+// If a nil httpClient is provided, a new http.Client will be used.
 //
 // Note that NewEnterpriseClient is a convenience helper only;
 // its behavior is equivalent to using NewClient, followed by setting

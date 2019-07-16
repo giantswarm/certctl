@@ -5,6 +5,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const (
+	kindNode = "NodeConfig"
+)
+
 // NewNodeConfigCRD returns a new custom resource definition for NodeConfig.
 // This might look something like the following.
 //
@@ -20,6 +24,8 @@ import (
 //         kind: NodeConfig
 //         plural: nodeconfigs
 //         singular: nodeconfig
+//       subresources:
+//         status: {}
 //
 func NewNodeConfigCRD() *apiextensionsv1beta1.CustomResourceDefinition {
 	return &apiextensionsv1beta1.CustomResourceDefinition{
@@ -39,12 +45,21 @@ func NewNodeConfigCRD() *apiextensionsv1beta1.CustomResourceDefinition {
 				Plural:   "nodeconfigs",
 				Singular: "nodeconfig",
 			},
+			Subresources: &apiextensionsv1beta1.CustomResourceSubresources{
+				Status: &apiextensionsv1beta1.CustomResourceSubresourceStatus{},
+			},
 		},
 	}
 }
 
+func NewNodeTypeMeta() metav1.TypeMeta {
+	return metav1.TypeMeta{
+		APIVersion: version,
+		Kind:       kindNode,
+	}
+}
+
 // +genclient
-// +genclient:noStatus
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 type NodeConfig struct {
@@ -55,52 +70,9 @@ type NodeConfig struct {
 }
 
 type NodeConfigSpec struct {
-	Guest         NodeConfigSpecGuest         `json:"guest" yaml:"guest"`
-	VersionBundle NodeConfigSpecVersionBundle `json:"versionBundle" yaml:"versionBundle"`
-}
-
-type NodeConfigSpecGuest struct {
-	Cluster NodeConfigSpecGuestCluster `json:"cluster" yaml:"cluster"`
-	Node    NodeConfigSpecGuestNode    `json:"node" yaml:"node"`
-}
-
-type NodeConfigSpecGuestCluster struct {
-	API NodeConfigSpecGuestClusterAPI `json:"api" yaml:"api"`
-	// ID is the guest cluster ID of which a node should be drained.
-	ID string `json:"id" yaml:"id"`
-}
-
-type NodeConfigSpecGuestClusterAPI struct {
-	// Endpoint is the guest cluster API endpoint.
-	Endpoint string `json:"endpoint" yaml:"endpoint"`
-}
-
-type NodeConfigSpecGuestNode struct {
-	// Name is the identifier of the guest cluster's master and worker nodes. In
-	// Kubernetes/Kubectl they are represented as node names. The names are manage
-	// in an abstracted way because of provider specific differences.
-	//
-	//     AWS: EC2 instance DNS.
-	//     Azure: VM name.
-	//     KVM: host cluster pod name.
-	//
-	Name string `json:"name" yaml:"name"`
-}
-
-type NodeConfigSpecVersionBundle struct {
-	Version string `json:"version" yaml:"version"`
 }
 
 type NodeConfigStatus struct {
-	Conditions []NodeConfigStatusCondition `json:"conditions" yaml:"conditions"`
-}
-
-// NodeConfigStatusCondition expresses a condition in which a node may is.
-type NodeConfigStatusCondition struct {
-	// Status may be True, False or Unknown.
-	Status string `json:"status" yaml:"status"`
-	// Type may be Pending, Ready, Draining, Drained.
-	Type string `json:"type" yaml:"type"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
