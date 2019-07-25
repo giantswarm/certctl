@@ -1,5 +1,5 @@
 /*
-Copyright 2018 Giant Swarm GmbH.
+Copyright 2019 Giant Swarm GmbH.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -39,7 +39,5 @@ type IngressConfigExpansion interface{}
 type KVMClusterConfigExpansion interface{}
 
 type NodeConfigExpansion interface{}
-
-type ReleaseExpansion interface{}
 
 type StorageConfigExpansion interface{}
