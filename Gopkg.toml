@@ -25,9 +25,18 @@
 #   unused-packages = true
 
 
+
 [[constraint]]
   branch = "master"
   name = "github.com/giantswarm/go-uuid"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/giantswarm/e2e-harness"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/giantswarm/e2etemplates"
 
 [[constraint]]
   branch = "master"
@@ -35,7 +44,7 @@
 
 [[constraint]]
   branch = "master"
-  name = "github.com/giantswarm/e2e-harness"
+  name = "github.com/giantswarm/micrologger"
 
 [[constraint]]
   name = "github.com/hashicorp/vault"
@@ -44,6 +53,8 @@
 [[constraint]]
   branch = "master"
   name = "github.com/juju/errgo"
+
+
 
 [prune]
   go-tests = true
