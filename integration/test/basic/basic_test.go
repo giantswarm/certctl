@@ -45,7 +45,7 @@ func TestIssuance(t *testing.T) {
 		t.Fatalf("could not setup Vault PKI, %#v", err)
 	}
 
-	l.Log("level", "debug", "message", fmt.Sprintf("setup Vault PKI successful, returned token %q", token))
+	c.Logger.Log("level", "debug", "message", fmt.Sprintf("setup Vault PKI successful, returned token %q", token))
 
 	client.SetToken(token)
 
@@ -173,18 +173,14 @@ func createToken(svc token.Service) (string, error) {
 }
 
 func getVaultAddr() (string, error) {
-	vaultSvc, err := f.K8sClient().
-		CoreV1().
-		Services("default").
-		Get("vault", meta_v1.GetOptions{})
+	vaultSvc, err := c.Clients.K8sClient().CoreV1().Services("default").Get("vault", meta_v1.GetOptions{})
 	if err != nil {
 		return "", microerror.Mask(err)
 	}
 
 	// We will access Vault service from the test container using the k8s API
 	// server address and the service NodePort.
-	restCfg := f.RestConfig()
-	hostURL, err := url.Parse(restCfg.Host)
+	hostURL, err := url.Parse(c.Clients.RestConfig().Host)
 	if err != nil {
 		return "", microerror.Mask(err)
 	}

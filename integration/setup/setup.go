@@ -3,18 +3,24 @@
 package setup
 
 import (
+	"context"
 	"log"
 	"os"
 	"testing"
 
-	"github.com/giantswarm/e2e-harness/pkg/framework"
+	"github.com/giantswarm/e2e-harness/pkg/release"
+	"github.com/giantswarm/e2etemplates/pkg/chartvalues"
+	"github.com/giantswarm/microerror"
+
+	"github.com/giantswarm/certctl/integration/env"
+	"github.com/giantswarm/certctl/integration/key"
 )
 
-func WrapTestMain(f *framework.Host, m *testing.M) {
+func WrapTestMain(c Config, m *testing.M) {
 	var v int
 	var err error
 
-	err = f.Setup()
+	err = setup(c)
 	if err != nil {
 		log.Printf("%#v\n", err)
 		v = 1
@@ -24,11 +30,48 @@ func WrapTestMain(f *framework.Host, m *testing.M) {
 		v = m.Run()
 	}
 
-	if os.Getenv("KEEP_RESOURCES") != "true" {
-		// only do full teardown when not on CI
-		if os.Getenv("CIRCLECI") != "true" {
-			f.Teardown()
+	err = teardown(c)
+	if err != nil {
+		log.Printf("%#v\n", err)
+		v = 1
+	}
+
+	os.Exit(v)
+}
+
+func setup(c Config) error {
+	ctx := context.Background()
+
+	{
+		err := c.Setup.EnsureNamespaceCreated(ctx, namespace)
+		if err != nil {
+			return microerror.Mask(err)
 		}
 	}
-	os.Exit(v)
+
+	var values string
+	var err error
+	{
+		c := chartvalues.E2ESetupVaultConfig{
+			Vault: chartvalues.E2ESetupVaultConfigVault{
+				Token: env.VaultToken(),
+			},
+		}
+
+		values, err = chartvalues.NewE2ESetupVault(c)
+		if err != nil {
+			return microerror.Mask(err)
+		}
+	}
+
+	err = c.Release.Install(ctx, key.VaultReleaseName(), release.NewStableVersion(), values, c.Release.Condition().PodExists(ctx, "default", "app=vault"))
+	if err != nil {
+		return microerror.Mask(err)
+	}
+
+	return nil
+}
+
+func teardown(c Config) error {
+	return nil
 }
