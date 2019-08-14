@@ -5,6 +5,39 @@ import (
 	"time"
 )
 
+func NewStatusClusterNode(name, version string, labels map[string]string) StatusClusterNode {
+	return StatusClusterNode{
+		Labels:             labels,
+		LastTransitionTime: DeepCopyTime{time.Now()},
+		Name:               name,
+		Version:            version,
+	}
+}
+
+func (s StatusCluster) GetCreatedCondition() StatusClusterCondition {
+	return getCondition(s.Conditions, StatusClusterStatusTrue, StatusClusterTypeCreated)
+}
+
+func (s StatusCluster) GetCreatingCondition() StatusClusterCondition {
+	return getCondition(s.Conditions, StatusClusterStatusTrue, StatusClusterTypeCreating)
+}
+
+func (s StatusCluster) GetDeletedCondition() StatusClusterCondition {
+	return getCondition(s.Conditions, StatusClusterStatusTrue, StatusClusterTypeDeleted)
+}
+
+func (s StatusCluster) GetDeletingCondition() StatusClusterCondition {
+	return getCondition(s.Conditions, StatusClusterStatusTrue, StatusClusterTypeDeleting)
+}
+
+func (s StatusCluster) GetUpdatedCondition() StatusClusterCondition {
+	return getCondition(s.Conditions, StatusClusterStatusTrue, StatusClusterTypeUpdated)
+}
+
+func (s StatusCluster) GetUpdatingCondition() StatusClusterCondition {
+	return getCondition(s.Conditions, StatusClusterStatusTrue, StatusClusterTypeUpdating)
+}
+
 func (s StatusCluster) HasCreatedCondition() bool {
 	return hasCondition(s.Conditions, StatusClusterStatusTrue, StatusClusterTypeCreated)
 }
@@ -41,7 +74,7 @@ func (s StatusCluster) LatestVersion() string {
 	latest := s.Versions[0]
 
 	for _, v := range s.Versions {
-		if latest.Date.Before(v.Date) {
+		if latest.LastTransitionTime.Time.Before(v.LastTransitionTime.Time) || latest.Date.Before(v.Date) {
 			latest = v
 		}
 	}
@@ -50,31 +83,46 @@ func (s StatusCluster) LatestVersion() string {
 }
 
 func (s StatusCluster) WithCreatedCondition() []StatusClusterCondition {
-	return withCondition(s.Conditions, StatusClusterTypeCreating, StatusClusterTypeCreated, StatusClusterStatusTrue)
+	return withCondition(s.Conditions, StatusClusterTypeCreating, StatusClusterTypeCreated, StatusClusterStatusTrue, time.Now())
 }
 
 func (s StatusCluster) WithCreatingCondition() []StatusClusterCondition {
-	return withCondition(s.Conditions, StatusClusterTypeCreated, StatusClusterTypeCreating, StatusClusterStatusTrue)
+	return withCondition(s.Conditions, StatusClusterTypeCreated, StatusClusterTypeCreating, StatusClusterStatusTrue, time.Now())
 }
 
 func (s StatusCluster) WithDeletedCondition() []StatusClusterCondition {
-	return withCondition(s.Conditions, StatusClusterTypeDeleting, StatusClusterTypeDeleted, StatusClusterStatusTrue)
+	return withCondition(s.Conditions, StatusClusterTypeDeleting, StatusClusterTypeDeleted, StatusClusterStatusTrue, time.Now())
 }
 
 func (s StatusCluster) WithDeletingCondition() []StatusClusterCondition {
-	return withCondition(s.Conditions, StatusClusterTypeDeleted, StatusClusterTypeDeleting, StatusClusterStatusTrue)
+	return withCondition(s.Conditions, StatusClusterTypeDeleted, StatusClusterTypeDeleting, StatusClusterStatusTrue, time.Now())
 }
 
 func (s StatusCluster) WithNewVersion(version string) []StatusClusterVersion {
-	return withVersion(s.Versions, StatusClusterVersion{Date: time.Now(), Semver: version}, ClusterVersionLimit)
+	newVersion := StatusClusterVersion{
+		LastTransitionTime: DeepCopyTime{time.Now()},
+		Semver:             version,
+	}
+
+	return withVersion(s.Versions, newVersion, ClusterVersionLimit)
 }
 
 func (s StatusCluster) WithUpdatedCondition() []StatusClusterCondition {
-	return withCondition(s.Conditions, StatusClusterTypeUpdating, StatusClusterTypeUpdated, StatusClusterStatusTrue)
+	return withCondition(s.Conditions, StatusClusterTypeUpdating, StatusClusterTypeUpdated, StatusClusterStatusTrue, time.Now())
 }
 
 func (s StatusCluster) WithUpdatingCondition() []StatusClusterCondition {
-	return withCondition(s.Conditions, StatusClusterTypeUpdated, StatusClusterTypeUpdating, StatusClusterStatusTrue)
+	return withCondition(s.Conditions, StatusClusterTypeUpdated, StatusClusterTypeUpdating, StatusClusterStatusTrue, time.Now())
+}
+
+func getCondition(conditions []StatusClusterCondition, s string, t string) StatusClusterCondition {
+	for _, c := range conditions {
+		if c.Status == s && c.Type == t {
+			return c
+		}
+	}
+
+	return StatusClusterCondition{}
 }
 
 func hasCondition(conditions []StatusClusterCondition, s string, t string) bool {
@@ -97,11 +145,12 @@ func hasVersion(versions []StatusClusterVersion, search string) bool {
 	return false
 }
 
-func withCondition(conditions []StatusClusterCondition, search string, replace string, status string) []StatusClusterCondition {
+func withCondition(conditions []StatusClusterCondition, search string, replace string, status string, t time.Time) []StatusClusterCondition {
 	newConditions := []StatusClusterCondition{
 		{
-			Status: status,
-			Type:   replace,
+			LastTransitionTime: DeepCopyTime{t},
+			Status:             status,
+			Type:               replace,
 		},
 	}
 

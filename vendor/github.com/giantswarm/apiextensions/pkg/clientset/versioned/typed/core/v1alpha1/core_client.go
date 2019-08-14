@@ -1,5 +1,5 @@
 /*
-Copyright 2018 Giant Swarm GmbH.
+Copyright 2019 Giant Swarm GmbH.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -38,7 +38,6 @@ type CoreV1alpha1Interface interface {
 	IngressConfigsGetter
 	KVMClusterConfigsGetter
 	NodeConfigsGetter
-	ReleasesGetter
 	StorageConfigsGetter
 }
 
@@ -89,10 +88,6 @@ func (c *CoreV1alpha1Client) KVMClusterConfigs(namespace string) KVMClusterConfi
 
 func (c *CoreV1alpha1Client) NodeConfigs(namespace string) NodeConfigInterface {
 	return newNodeConfigs(c, namespace)
-}
-
-func (c *CoreV1alpha1Client) Releases(namespace string) ReleaseInterface {
-	return newReleases(c, namespace)
 }
 
 func (c *CoreV1alpha1Client) StorageConfigs(namespace string) StorageConfigInterface {
