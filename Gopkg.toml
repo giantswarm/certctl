@@ -27,32 +27,56 @@
 
 
 [[constraint]]
-  branch = "master"
   name = "github.com/giantswarm/go-uuid"
+  branch = "master"
 
 [[constraint]]
-  branch = "master"
   name = "github.com/giantswarm/e2e-harness"
+  branch = "master"
 
 [[constraint]]
-  branch = "master"
   name = "github.com/giantswarm/e2etemplates"
+  branch = "master"
 
 [[constraint]]
+  name = "github.com/giantswarm/e2esetup"
   branch = "master"
+
+[[constraint]]
   name = "github.com/giantswarm/microerror"
+  branch = "master"
 
 [[constraint]]
-  branch = "master"
   name = "github.com/giantswarm/micrologger"
+  branch = "master"
 
 [[constraint]]
   name = "github.com/hashicorp/vault"
   version = "1.0.3"
 
-[[constraint]]
+[[override]]
+  name = "k8s.io/apiserver"
+  version = "kubernetes-1.15.4"
+
+[[override]]
+  name = "k8s.io/cli-runtime"
+  version = "kubernetes-1.15.4"
+
+[[override]]
+  name = "k8s.io/component-base"
+  version = "kubernetes-1.15.4"
+
+[[override]]
+  name = "k8s.io/kubernetes"
+  version = "v1.15.4"
+
+[[override]]
   branch = "master"
-  name = "github.com/juju/errgo"
+  name = "github.com/ghodss/yaml"
+
+[[override]]
+  name = "github.com/russross/blackfriday"
+  version = "v1.5.2"
 
 
 

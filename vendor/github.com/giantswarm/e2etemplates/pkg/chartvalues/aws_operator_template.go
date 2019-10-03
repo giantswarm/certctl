@@ -54,9 +54,6 @@ const awsOperatorTemplate = `Installation:
       Domain: quay.io
     Secret:
       AWSOperator:
-        CredentialDefault:
-          AdminARN: '{{ .Secret.AWSOperator.CredentialDefault.AdminARN }}'
-          AWSOperatorARN: '{{ .Secret.AWSOperator.CredentialDefault.AWSOperatorARN }}'
         SecretYaml: |
           service:
             aws:
@@ -74,4 +71,8 @@ const awsOperatorTemplate = `Installation:
     Security:
       RestrictAccess:
         Enabled: false
+        GSAPI: false
+        GuestAPI:
+          Private: false
+          Public: false
 `

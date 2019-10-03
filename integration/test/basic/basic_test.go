@@ -21,7 +21,7 @@ import (
 	"github.com/giantswarm/certctl/service/pki"
 	"github.com/giantswarm/certctl/service/spec"
 	"github.com/giantswarm/certctl/service/token"
-	"github.com/giantswarm/certctl/service/vault-factory"
+	vaultfactory "github.com/giantswarm/certctl/service/vault-factory"
 )
 
 func TestIssuance(t *testing.T) {
@@ -180,7 +180,7 @@ func getVaultAddr() (string, error) {
 
 	// We will access Vault service from the test container using the k8s API
 	// server address and the service NodePort.
-	hostURL, err := url.Parse(c.Clients.RestConfig().Host)
+	hostURL, err := url.Parse(c.Clients.RESTConfig().Host)
 	if err != nil {
 		return "", microerror.Mask(err)
 	}
