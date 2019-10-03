@@ -7,6 +7,7 @@ import (
 	"github.com/giantswarm/e2e-harness/pkg/release"
 	"github.com/giantswarm/e2esetup/k8s"
 	"github.com/giantswarm/helmclient"
+	"github.com/giantswarm/k8sclient"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 )
@@ -17,7 +18,7 @@ const (
 )
 
 type Config struct {
-	Clients *k8s.Clients
+	Clients *k8sclient.Clients
 	Logger  micrologger.Logger
 	Release *release.Release
 	Setup   *k8s.Setup
@@ -36,15 +37,15 @@ func NewConfig() (Config, error) {
 		}
 	}
 
-	var cpK8sClients *k8s.Clients
+	var cpK8sClients *k8sclient.Clients
 	{
-		c := k8s.ClientsConfig{
+		c := k8sclient.ClientsConfig{
 			Logger: logger,
 
 			KubeConfigPath: harness.DefaultKubeConfig,
 		}
 
-		cpK8sClients, err = k8s.NewClients(c)
+		cpK8sClients, err = k8sclient.NewClients(c)
 		if err != nil {
 			return Config{}, microerror.Mask(err)
 		}
@@ -69,7 +70,7 @@ func NewConfig() (Config, error) {
 			Logger:    logger,
 			K8sClient: cpK8sClients.K8sClient(),
 
-			RestConfig:      cpK8sClients.RestConfig(),
+			RestConfig:      cpK8sClients.RESTConfig(),
 			TillerNamespace: tillerNamespace,
 		}
 
