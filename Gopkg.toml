@@ -27,6 +27,10 @@
 
 
 [[constraint]]
+  name = "github.com/giantswarm/backoff"
+  branch = "master"
+
+[[constraint]]
   name = "github.com/giantswarm/go-uuid"
   branch = "master"
 
@@ -39,7 +43,11 @@
   branch = "master"
 
 [[constraint]]
-  name = "github.com/giantswarm/e2esetup"
+  name = "github.com/giantswarm/helmclient"
+  branch = "master"
+
+[[constraint]]
+  name = "github.com/giantswarm/k8sclient"
   branch = "master"
 
 [[constraint]]
@@ -56,19 +64,23 @@
 
 [[override]]
   name = "k8s.io/apiserver"
-  version = "kubernetes-1.15.4"
+  version = "kubernetes-1.16.3"
 
 [[override]]
   name = "k8s.io/cli-runtime"
-  version = "kubernetes-1.15.4"
+  version = "kubernetes-1.16.3"
 
 [[override]]
   name = "k8s.io/component-base"
-  version = "kubernetes-1.15.4"
+  version = "kubernetes-1.16.3"
+
+[[override]]
+  name = "k8s.io/kubectl"
+  version = "kubernetes-1.16.3"
 
 [[override]]
   name = "k8s.io/kubernetes"
-  version = "v1.15.4"
+  version = "v1.16.3"
 
 [[override]]
   branch = "master"

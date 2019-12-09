@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cenkalti/backoff"
+	"github.com/giantswarm/backoff"
 	"github.com/giantswarm/microerror"
 	vaultclient "github.com/hashicorp/vault/api"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -203,7 +203,7 @@ func waitForVault(client *vaultclient.Client) error {
 		}
 		return nil
 	}
-	b := backoff.NewExponentialBackOff()
+	b := backoff.NewExponential(backoff.MediumMaxWait, backoff.LongMaxInterval)
 	n := func(err error, delay time.Duration) {
 		log.Printf("failed connection to vault %#v", err)
 	}
