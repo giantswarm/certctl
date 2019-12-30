@@ -1,3 +1,6 @@
+orbs:
+  architect: giantswarm/architect@0.4.5
+
 e2eTestTpl: &e2eTestTpl
     machine: true
     working_directory: /home/circleci/.go_workspace/src/github.com/giantswarm/certctl
@@ -58,7 +61,18 @@ workflows:
       - e2eTest:
           requires:
           - build
-
+      # Push to Aliyun should execute without manual approval on master.
+      - architect/push-to-docker-legacy:
+          name: push-certctl-to-aliyun-master
+          image: "registry-intl.cn-shanghai.aliyuncs.com/giantswarm/certctl"
+          username_envar: "ALIYUN_USERNAME"
+          password_envar: "ALIYUN_PASSWORD"
+          requires:
+            - build
+          # Needed to trigger job only on merge to master.
+          filters:
+            branches:
+              only: master
       - deploy:
           filters:
             branches:
