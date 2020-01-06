@@ -19,7 +19,7 @@ e2eTestTpl: &e2eTestTpl
         command: ./e2e-harness teardown
         when: always
 
-version: 2
+version: 2.1
 jobs:
   build:
     machine: true
