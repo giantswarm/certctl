@@ -38,6 +38,7 @@ jobs:
         root: .
         paths:
         - ./architect
+        - ./certctl
 
   e2eTest:
     environment:
@@ -70,9 +71,9 @@ workflows:
           requires:
             - build
           # Needed to trigger job only on merge to master.
-          filters:
-            branches:
-              only: master
+         # filters:
+         #   branches:
+         #     only: master
       - deploy:
           filters:
             branches:
