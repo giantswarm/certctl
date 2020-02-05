@@ -4,7 +4,7 @@ import (
 	"github.com/giantswarm/microerror"
 )
 
-var invalidConfigError = microerror.Error{
+var invalidConfigError = &microerror.Error{
 	Kind: "invalidConfigError",
 }
 
@@ -13,7 +13,7 @@ func IsInvalidConfig(err error) bool {
 	return microerror.Cause(err) == invalidConfigError
 }
 
-var policyAlreadyExistsError = microerror.Error{
+var policyAlreadyExistsError = &microerror.Error{
 	Kind: "policyAlreadyExistsError",
 }
 

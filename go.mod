@@ -25,8 +25,8 @@ require (
 	github.com/giantswarm/helmclient v0.0.0-20191209124624-d3c47349776d
 	github.com/giantswarm/k8sclient v0.0.0-20191209120459-6cb127468cd6
 	github.com/giantswarm/k8sportforward v0.0.0-20191209165148-21368288d82d // indirect
-	github.com/giantswarm/microerror v0.1.1-0.20200204123133-8f12df8fee02
-	github.com/giantswarm/micrologger v0.0.0-20200204125826-7578dee0008d
+	github.com/giantswarm/microerror v0.1.1-0.20200205143715-01b76f66cae6
+	github.com/giantswarm/micrologger v0.0.0-20200205144836-079154bcae45
 	github.com/go-openapi/jsonreference v0.19.3 // indirect
 	github.com/go-openapi/spec v0.19.4 // indirect
 	github.com/go-test/deep v1.0.2 // indirect

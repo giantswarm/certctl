@@ -8,7 +8,7 @@ import (
 	"github.com/juju/errgo"
 )
 
-var invalidConfigError = microerror.Error{
+var invalidConfigError = &microerror.Error{
 	Kind: "invalidConfigError",
 }
 
@@ -17,7 +17,7 @@ func IsInvalidConfig(err error) bool {
 	return microerror.Cause(err) == invalidConfigError
 }
 
-var keyPairNotFoundError = microerror.Error{
+var keyPairNotFoundError = &microerror.Error{
 	Kind: "keyPairNotFoundError",
 }
 
