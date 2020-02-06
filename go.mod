@@ -10,7 +10,6 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/chai2010/gettext-go v0.0.0-20170215093142-bf70f2a70fb1 // indirect
-	github.com/coreos/go-systemd v0.0.0-20181012123002-c6f51f82210d // indirect
 	github.com/emicklei/go-restful v2.11.1+incompatible // indirect
 	github.com/fortytw2/leaktest v1.3.0 // indirect
 	github.com/frankban/quicktest v1.4.1 // indirect
@@ -27,16 +26,11 @@ require (
 	github.com/giantswarm/k8sportforward v0.0.0-20191209165148-21368288d82d // indirect
 	github.com/giantswarm/microerror v0.1.1-0.20200205143715-01b76f66cae6
 	github.com/giantswarm/micrologger v0.0.0-20200205144836-079154bcae45
-	github.com/go-openapi/jsonreference v0.19.3 // indirect
 	github.com/go-openapi/spec v0.19.4 // indirect
 	github.com/go-test/deep v1.0.2 // indirect
-	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gogo/protobuf v1.3.1 // indirect
 	github.com/golang/groupcache v0.0.0-20191027212112-611e8accdfc9 // indirect
-	github.com/google/btree v1.0.0 // indirect
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
-	github.com/grpc-ecosystem/go-grpc-middleware v1.0.1-0.20190118093823-f849b5445de4 // indirect
-	github.com/grpc-ecosystem/grpc-gateway v1.8.5 // indirect
 	github.com/hashicorp/go-retryablehttp v0.6.4 // indirect
 	github.com/hashicorp/golang-lru v0.5.3 // indirect
 	github.com/hashicorp/vault/api v1.0.5-0.20191108163347-bdd38fca2cff
@@ -44,19 +38,14 @@ require (
 	github.com/huandu/xstrings v1.2.1 // indirect
 	github.com/imdario/mergo v0.3.8 // indirect
 	github.com/jmoiron/sqlx v1.2.0 // indirect
-	github.com/json-iterator/go v1.1.8 // indirect
 	github.com/juju/errgo v0.0.0-20140925100237-08cceb5d0b53
-	github.com/mailru/easyjson v0.7.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.1 // indirect
 	github.com/pierrec/lz4 v2.4.0+incompatible // indirect
 	github.com/prometheus/client_model v0.1.0 // indirect
 	github.com/prometheus/common v0.7.0 // indirect
 	github.com/prometheus/procfs v0.0.8 // indirect
 	github.com/rubenv/sql-migrate v0.0.0-20191121092708-da1cb182f00e // indirect
-	github.com/soheilhy/cmux v0.1.4 // indirect
 	github.com/spf13/cobra v0.0.5
-	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2 // indirect
 	go.uber.org/atomic v1.4.0 // indirect
 	golang.org/x/crypto v0.0.0-20191206172530-e9b2fee46413 // indirect
 	golang.org/x/net v0.0.0-20191209160850-c0dbc17a3553 // indirect
@@ -67,14 +56,11 @@ require (
 	google.golang.org/genproto v0.0.0-20191206224255-0243a4be9c8f // indirect
 	google.golang.org/grpc v1.25.1 // indirect
 	gopkg.in/square/go-jose.v2 v2.4.0 // indirect
-	k8s.io/apiextensions-apiserver v0.16.4 // indirect
-	k8s.io/apimachinery v0.16.4
+	k8s.io/apimachinery v0.16.6
+	k8s.io/component-base v0.16.6 // indirect
 	k8s.io/helm v2.16.1+incompatible // indirect
-	k8s.io/kubectl v0.16.4 // indirect
-	k8s.io/kubernetes v1.16.4 // indirect
-	k8s.io/utils v0.0.0 // indirect
+	k8s.io/kubernetes v1.16.6 // indirect
 	sigs.k8s.io/controller-runtime v0.4.0 // indirect
-	vbom.ml/util v0.0.0-20180919145318-efcd4e0f9787 // indirect
 )
 
 replace (
