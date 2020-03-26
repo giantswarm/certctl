@@ -1,6 +1,0 @@
-version: 1
-
-test:
-  env:
-    - "CIRCLE_SHA1=${CIRCLE_SHA1}"
-    - "VAULT_TOKEN=myToken"

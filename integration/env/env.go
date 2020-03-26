@@ -3,7 +3,6 @@
 package env
 
 import (
-	"fmt"
 	"os"
 )
 
@@ -20,7 +19,7 @@ var (
 func init() {
 	vaultToken = os.Getenv(EnvVaultToken)
 	if vaultToken == "" {
-		panic(fmt.Sprintf("env var %q must not be empty", EnvVaultToken))
+		vaultToken = "myToken"
 	}
 }
 
