@@ -7,14 +7,13 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/spf13/cobra"
-
+	"github.com/giantswarm/microerror"
 	vaultclient "github.com/hashicorp/vault/api"
+	"github.com/spf13/cobra"
 
 	"github.com/giantswarm/certctl/service/cert-signer"
 	"github.com/giantswarm/certctl/service/spec"
 	"github.com/giantswarm/certctl/service/vault-factory"
-	"github.com/giantswarm/microerror"
 )
 
 type issueFlags struct {

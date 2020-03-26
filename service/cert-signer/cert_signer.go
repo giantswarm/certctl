@@ -1,16 +1,15 @@
 package certsigner
 
 import (
-	"crypto/sha1"
 	"fmt"
-	"sort"
 	"strings"
 
+	"github.com/giantswarm/microerror"
+	vaultrolekey "github.com/giantswarm/vaultrole/key"
 	vaultclient "github.com/hashicorp/vault/api"
 
 	"github.com/giantswarm/certctl/service/role"
 	"github.com/giantswarm/certctl/service/spec"
-	"github.com/giantswarm/microerror"
 )
 
 // Config represents the configuration used to create a new certificate signer.
@@ -70,7 +69,8 @@ func (cs *certSigner) Issue(config spec.IssueConfig) (spec.IssueResponse, error)
 
 	// Ensure a role exists exists that can issue a cert with the desired Organizations
 	// before trying to issue a cert.
-	isRoleCreated, err := roleService.IsRoleCreated(roleName(config.ClusterID, config.Organizations))
+	// Sort organizations alphabetically
+	isRoleCreated, err := roleService.IsRoleCreated(vaultrolekey.RoleName(config.ClusterID, strings.Split(config.Organizations, ",")))
 	if err != nil {
 		return spec.IssueResponse{}, microerror.Mask(err)
 	}
@@ -81,7 +81,7 @@ func (cs *certSigner) Issue(config spec.IssueConfig) (spec.IssueResponse, error)
 			AllowedDomains:   config.AllowedDomains,
 			AllowSubdomains:  true,
 			TTL:              config.RoleTTL,
-			Name:             roleName(config.ClusterID, config.Organizations),
+			Name:             vaultrolekey.RoleName(config.ClusterID, strings.Split(config.Organizations, ",")),
 			Organizations:    config.Organizations,
 		}
 
@@ -141,40 +141,5 @@ func (cs *certSigner) Issue(config spec.IssueConfig) (spec.IssueResponse, error)
 }
 
 func (cs *certSigner) SignedPath(clusterID string, organizations string) string {
-	return fmt.Sprintf("pki-%s/issue/%s", clusterID, roleName(clusterID, organizations))
-}
-
-func roleName(clusterID string, organizations string) string {
-	if organizations == "" {
-		// If organizations isn't set, use the role that was created when the PKI
-		// for this cluster was first setup.
-		return fmt.Sprintf("role-%s", clusterID)
-	}
-
-	// Compute a url-safe hash of the organizations that stays the same regardless
-	// of the order of the organizations supplied.
-	return fmt.Sprintf("role-org-%s", computeRoleHash(organizations))
-}
-
-// computeRoleHash computes a hash for the role that can issue these organizations.
-// Since we want to reuse roles when possible, we should try to make sure that
-// the same list of organizations returns the same hash (regardless of the order).
-// The reason we don't use just the organizations that the user provided is because
-// that could potentially be a very long list, or otherwise contain characters
-// that are not allowed in URLs.
-func computeRoleHash(organizations string) string {
-	// Sort organizations alphabetically
-	organizationsSlice := strings.Split(organizations, ",")
-	sort.Strings(organizationsSlice)
-	organizations = strings.Join(organizationsSlice, ",")
-
-	h := sha1.New()
-	h.Write([]byte(organizations))
-	bs := h.Sum(nil)
-
-	return fmt.Sprintf("%x", bs)
-}
-
-func writeRolePath(clusterID string, organizations string) string {
-	return fmt.Sprintf("pki-%s/roles/%s", clusterID, roleName(clusterID, organizations))
+	return fmt.Sprintf("pki-%s/issue/%s", clusterID, vaultrolekey.RoleName(clusterID, strings.Split(organizations, ",")))
 }
