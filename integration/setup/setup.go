@@ -45,12 +45,12 @@ func setup(c Config) error {
 	ctx := context.Background()
 
 	{
-		err = c.HelmClient.EnsureTillerInstalled(ctx)
+		err = c.Setup.EnsureNamespaceCreated(ctx, namespace)
 		if err != nil {
 			return microerror.Mask(err)
 		}
 
-		err = c.Setup.EnsureNamespaceCreated(ctx, namespace)
+		err = c.HelmClient.EnsureTillerInstalled(ctx)
 		if err != nil {
 			return microerror.Mask(err)
 		}
