@@ -10,7 +10,7 @@ import (
 
 	"github.com/giantswarm/certctl/service/pki"
 	"github.com/giantswarm/certctl/service/token"
-	"github.com/giantswarm/certctl/service/vault-factory"
+	vaultfactory "github.com/giantswarm/certctl/service/vault-factory"
 )
 
 type setupFlags struct {
