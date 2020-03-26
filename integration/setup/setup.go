@@ -57,7 +57,6 @@ func setup(c Config) error {
 	}
 
 	var values string
-	var err error
 	{
 		c := chartvalues.E2ESetupVaultConfig{
 			Vault: chartvalues.E2ESetupVaultConfigVault{
