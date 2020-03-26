@@ -1,7 +1,7 @@
 package token
 
 import (
-	"crypto/sha1"
+	"crypto/sha512"
 	"fmt"
 	"sort"
 	"strings"
@@ -244,8 +244,11 @@ func computeRoleHash(organizations string) string {
 	sort.Strings(organizationsSlice)
 	organizations = strings.Join(organizationsSlice, ",")
 
-	h := sha1.New()
-	h.Write([]byte(organizations))
+	h := sha512.New()
+	_, err := h.Write([]byte(organizations))
+	if err != nil {
+		panic(err)
+	}
 	bs := h.Sum(nil)
 
 	return fmt.Sprintf("%x", bs)
