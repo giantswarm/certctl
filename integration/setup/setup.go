@@ -40,10 +40,17 @@ func WrapTestMain(c Config, m *testing.M) {
 }
 
 func setup(c Config) error {
+	var err error
+
 	ctx := context.Background()
 
 	{
-		err := c.Setup.EnsureNamespaceCreated(ctx, namespace)
+		err = c.HelmClient.EnsureTillerInstalled(ctx)
+		if err != nil {
+			return microerror.Mask(err)
+		}
+
+		err = c.Setup.EnsureNamespaceCreated(ctx, namespace)
 		if err != nil {
 			return microerror.Mask(err)
 		}

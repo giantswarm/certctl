@@ -18,10 +18,11 @@ const (
 )
 
 type Config struct {
-	Clients *k8sclient.Clients
-	Logger  micrologger.Logger
-	Release *release.Release
-	Setup   *k8sclient.Setup
+	Clients    *k8sclient.Clients
+	Logger     micrologger.Logger
+	HelmClient *helmclient.Client
+	Release    *release.Release
+	Setup      *k8sclient.Setup
 }
 
 func NewConfig() (Config, error) {
@@ -99,10 +100,11 @@ func NewConfig() (Config, error) {
 	}
 
 	c := Config{
-		Clients: cpK8sClients,
-		Logger:  logger,
-		Release: newRelease,
-		Setup:   k8sSetup,
+		Clients:    cpK8sClients,
+		Logger:     logger,
+		HelmClient: helmClient,
+		Release:    newRelease,
+		Setup:      k8sSetup,
 	}
 
 	return c, nil
