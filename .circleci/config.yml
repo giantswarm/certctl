@@ -4,10 +4,11 @@ orbs:
   architect: giantswarm/architect@0.8.4
 
 workflows:
-  test:
+  build:
     jobs:
       - architect/go-build:
           name: go-build
+          binary: certctl
           filters:
             # Trigger job also on git tag.
             tags:
