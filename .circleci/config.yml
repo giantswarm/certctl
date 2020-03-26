@@ -20,8 +20,19 @@ workflows:
           requires:
             - go-build
 
-      # Push to Aliyun should execute without manual approval on master.
-      - architect/push-to-docker-legacy:
+      - architect/push-to-docker:
+          name: push-certctl-to-quay-master
+          image: "quay.io/giantswarm/aws-operator"
+          username_envar: "QUAY_USERNAME"
+          password_envar: "QUAY_PASSWORD"
+          requires:
+            - go-build
+          # Needed to trigger job only on merge to master.
+          filters:
+            branches:
+              only: master
+
+      - architect/push-to-docker:
           name: push-certctl-to-aliyun-master
           image: "registry-intl.cn-shanghai.aliyuncs.com/giantswarm/certctl"
           username_envar: "ALIYUN_USERNAME"
@@ -32,10 +43,3 @@ workflows:
           filters:
             branches:
               only: master
-
-      - deploy:
-          filters:
-            branches:
-              only: master
-          requires:
-          - integration-test-basic
