@@ -84,7 +84,6 @@ func issueCerts(client *vaultclient.Client) error {
 		return microerror.Mask(err)
 	}
 
-
 	newIssueConfig := spec.IssueConfig{
 		ClusterID:  defaultClusterID,
 		CommonName: defaultCertCommonName,
