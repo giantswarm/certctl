@@ -3,8 +3,9 @@ package main
 import (
 	"log"
 
-	"github.com/giantswarm/certctl/cli"
 	"github.com/giantswarm/microerror"
+
+	"github.com/giantswarm/certctl/cli"
 )
 
 func main() {

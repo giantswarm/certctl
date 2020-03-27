@@ -4,14 +4,13 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/spf13/cobra"
-
+	"github.com/giantswarm/microerror"
 	vaultclient "github.com/hashicorp/vault/api"
+	"github.com/spf13/cobra"
 
 	"github.com/giantswarm/certctl/service/pki"
 	"github.com/giantswarm/certctl/service/token"
-	"github.com/giantswarm/certctl/service/vault-factory"
-	"github.com/giantswarm/microerror"
+	vaultfactory "github.com/giantswarm/certctl/service/vault-factory"
 )
 
 type inspectFlags struct {

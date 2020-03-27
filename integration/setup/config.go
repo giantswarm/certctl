@@ -3,12 +3,13 @@
 package setup
 
 import (
-	"github.com/giantswarm/e2e-harness/pkg/harness"
 	"github.com/giantswarm/e2e-harness/pkg/release"
 	"github.com/giantswarm/helmclient"
 	"github.com/giantswarm/k8sclient"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
+
+	"github.com/giantswarm/certctl/integration/env"
 )
 
 const (
@@ -17,10 +18,11 @@ const (
 )
 
 type Config struct {
-	Clients *k8sclient.Clients
-	Logger  micrologger.Logger
-	Release *release.Release
-	Setup   *k8sclient.Setup
+	Clients    *k8sclient.Clients
+	Logger     micrologger.Logger
+	HelmClient *helmclient.Client
+	Release    *release.Release
+	Setup      *k8sclient.Setup
 }
 
 func NewConfig() (Config, error) {
@@ -41,7 +43,7 @@ func NewConfig() (Config, error) {
 		c := k8sclient.ClientsConfig{
 			Logger: logger,
 
-			KubeConfigPath: harness.DefaultKubeConfig,
+			KubeConfigPath: env.KubeConfigPath(),
 		}
 
 		cpK8sClients, err = k8sclient.NewClients(c)
@@ -98,10 +100,11 @@ func NewConfig() (Config, error) {
 	}
 
 	c := Config{
-		Clients: cpK8sClients,
-		Logger:  logger,
-		Release: newRelease,
-		Setup:   k8sSetup,
+		Clients:    cpK8sClients,
+		Logger:     logger,
+		HelmClient: helmClient,
+		Release:    newRelease,
+		Setup:      k8sSetup,
 	}
 
 	return c, nil
