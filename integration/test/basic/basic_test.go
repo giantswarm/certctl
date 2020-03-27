@@ -84,6 +84,8 @@ func issueCerts(client *vaultclient.Client) error {
 		return microerror.Mask(err)
 	}
 
+	// where do organizations come from?
+
 	newIssueConfig := spec.IssueConfig{
 		ClusterID:  defaultClusterID,
 		CommonName: defaultCertCommonName,
