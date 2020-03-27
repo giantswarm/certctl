@@ -67,5 +67,5 @@ type CertSigner interface {
 	//     organizationsHash is a deterministic urlsafe hash that is always the
 	//     same regardless of what order you give the organizations in.
 	//
-	SignedPath(clusterID string, organizations string) string
+	SignedPath(clusterID string, organizations []string) string
 }

@@ -67,10 +67,15 @@ func (cs *certSigner) Issue(config spec.IssueConfig) (spec.IssueResponse, error)
 		}
 	}
 
+	var organizations []string
+	if config.Organizations != "" {
+		organizations = strings.Split(config.Organizations, ",")
+	}
+
 	// Ensure a role exists exists that can issue a cert with the desired Organizations
 	// before trying to issue a cert.
 	// Sort organizations alphabetically
-	isRoleCreated, err := roleService.IsRoleCreated(vaultrolekey.RoleName(config.ClusterID, strings.Split(config.Organizations, ",")))
+	isRoleCreated, err := roleService.IsRoleCreated(vaultrolekey.RoleName(config.ClusterID, organizations))
 	if err != nil {
 		return spec.IssueResponse{}, microerror.Mask(err)
 	}
@@ -103,7 +108,7 @@ func (cs *certSigner) Issue(config spec.IssueConfig) (spec.IssueResponse, error)
 		"alt_names":   config.AltNames,
 	}
 
-	secret, err := logicalStore.Write(cs.SignedPath(config.ClusterID, config.Organizations), data)
+	secret, err := logicalStore.Write(cs.SignedPath(config.ClusterID, organizations), data)
 	if err != nil {
 		return spec.IssueResponse{}, microerror.Mask(err)
 	}
@@ -140,6 +145,6 @@ func (cs *certSigner) Issue(config spec.IssueConfig) (spec.IssueResponse, error)
 	return newIssueResponse, nil
 }
 
-func (cs *certSigner) SignedPath(clusterID string, organizations string) string {
-	return fmt.Sprintf("pki-%s/issue/%s", clusterID, vaultrolekey.RoleName(clusterID, strings.Split(organizations, ",")))
+func (cs *certSigner) SignedPath(clusterID string, organizations []string) string {
+	return fmt.Sprintf("pki-%s/issue/%s", clusterID, vaultrolekey.RoleName(clusterID, organizations))
 }
