@@ -16,7 +16,7 @@ workflows:
 
       - architect/integration-test:
           name: integration-test-basic
-          kind-config: "integration/test/basic/kind-config"
+          kind-config: "integration/test/basic/kind-config.yaml"
           test-dir: "integration/test/basic"
           requires:
             - go-build
