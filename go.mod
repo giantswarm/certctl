@@ -15,7 +15,7 @@ require (
 	github.com/hashicorp/vault/api v1.0.4
 	github.com/juju/errgo v0.0.0-20140925100237-08cceb5d0b53
 	github.com/spf13/cobra v0.0.5
-	k8s.io/apimachinery v0.16.6
+	k8s.io/apimachinery v0.18.0
 )
 
 replace (
