@@ -203,6 +203,8 @@ github.com/giantswarm/go-uuid v0.0.0-20141202165402-ed3ca8a15a93 h1:9B0ymiKuzg65
 github.com/giantswarm/go-uuid v0.0.0-20141202165402-ed3ca8a15a93/go.mod h1:Wa1DTICu/s8ZMh33OC5b9Tbn/M0c87y6R0nzgrGA1Ww=
 github.com/giantswarm/helmclient v0.2.0 h1:etBQoz0QN9quIA/blbkIkrfr0CuzwjxA89/1MgE5YoU=
 github.com/giantswarm/helmclient v0.2.0/go.mod h1:KRqUJrPL3QO/iISztTp+Ds+PJYBU8iGWNe9ZlJCdEAs=
+github.com/giantswarm/helmclient v0.2.1 h1:0hFAlSRyALH1m/M8lqKGpeMykqKW3Ob1UthCORGxlNU=
+github.com/giantswarm/helmclient v0.2.1/go.mod h1:KRqUJrPL3QO/iISztTp+Ds+PJYBU8iGWNe9ZlJCdEAs=
 github.com/giantswarm/k8sclient v0.2.0 h1:Az+Knfs2UJrNFoqfOsfkudg+rt3fn5EM1aKrnLSg3fU=
 github.com/giantswarm/k8sclient v0.2.0/go.mod h1:tUgUynwKgMnjnN2PldGmxJW6+8eZn2p7tT+tEhXDwOg=
 github.com/giantswarm/k8sportforward v0.2.0 h1:nzyKUtSWEbayvF74u3Pkr8AKKa3rk6LccxuIONDq4T8=
