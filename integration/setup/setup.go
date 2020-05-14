@@ -9,13 +9,16 @@ import (
 	"os"
 	"testing"
 
-	"github.com/giantswarm/e2etemplates/pkg/chartvalues"
+	"github.com/giantswarm/appcatalog"
 	"github.com/giantswarm/microerror"
 	"github.com/spf13/afero"
 	"k8s.io/helm/pkg/helm"
 
-	"github.com/giantswarm/certctl/integration/env"
 	"github.com/giantswarm/certctl/integration/key"
+)
+
+const (
+	vaultAppRelease = "vault-app"
 )
 
 func WrapTestMain(c Config, m *testing.M) {
@@ -58,44 +61,31 @@ func setup(c Config) error {
 		}
 	}
 
-	var values string
+	var tarballPath string
 	{
-		c := chartvalues.E2ESetupVaultConfig{
-			Vault: chartvalues.E2ESetupVaultConfigVault{
-				Token: env.VaultToken(),
-			},
-		}
-
-		values, err = chartvalues.NewE2ESetupVault(c)
+		tarballURL, err := appcatalog.GetLatestChart(ctx, key.OperationPlatformCatalogStorageURL(), vaultAppRelease, "")
 		if err != nil {
 			return microerror.Mask(err)
 		}
-	}
 
-	name := fmt.Sprintf("%s-chart", key.VaultReleaseName())
-	releaseVersion, err := c.ApprClient.GetReleaseVersion(ctx, name, "stable")
-	if err != nil {
-		return microerror.Mask(err)
-	}
-
-	operatorTarballPath, err := c.ApprClient.PullChartTarballFromRelease(ctx, name, releaseVersion)
-	if err != nil {
-		return microerror.Mask(err)
-	}
-
-	defer func() {
-		fs := afero.NewOsFs()
-		err := fs.Remove(operatorTarballPath)
+		tarballPath, err = c.HelmClient.PullChartTarball(ctx, tarballURL)
 		if err != nil {
-			c.Logger.LogCtx(ctx, "level", "error", "message", fmt.Sprintf("deletion of %#q failed", operatorTarballPath), "stack", fmt.Sprintf("%#v", err))
+			return microerror.Mask(err)
 		}
-	}()
+
+		defer func() {
+			fs := afero.NewOsFs()
+			err := fs.Remove(tarballPath)
+			if err != nil {
+				c.Logger.LogCtx(ctx, "level", "error", "message", fmt.Sprintf("deletion of %#q failed", tarballPath), "stack", fmt.Sprintf("%#v", err))
+			}
+		}()
+	}
 
 	err = c.HelmClient.InstallReleaseFromTarball(ctx,
-		operatorTarballPath,
+		tarballPath,
 		namespace,
-		helm.ReleaseName(key.VaultReleaseName()),
-		helm.ValueOverrides([]byte(values)))
+		helm.ReleaseName(key.VaultReleaseName()))
 	if err != nil {
 		return microerror.Mask(err)
 	}

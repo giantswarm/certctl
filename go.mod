@@ -3,6 +3,7 @@ module github.com/giantswarm/certctl
 go 1.13
 
 require (
+	github.com/giantswarm/appcatalog v0.2.3 // indirect
 	github.com/giantswarm/apprclient v0.2.0
 	github.com/giantswarm/backoff v0.2.0
 	github.com/giantswarm/e2etemplates v0.2.0
