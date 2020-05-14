@@ -72,12 +72,13 @@ func setup(c Config) error {
 		}
 	}
 
-	releaseVersion, err := c.ApprClient.GetReleaseVersion(ctx, fmt.Sprintf("%s-chart", key.VaultReleaseName()), "stable")
+	name := fmt.Sprintf("%s-chart", key.VaultReleaseName())
+	releaseVersion, err := c.ApprClient.GetReleaseVersion(ctx, name, "stable")
 	if err != nil {
 		return microerror.Mask(err)
 	}
 
-	operatorTarballPath, err := c.ApprClient.PullChartTarballFromRelease(ctx, key.VaultReleaseName(), releaseVersion)
+	operatorTarballPath, err := c.ApprClient.PullChartTarballFromRelease(ctx, name, releaseVersion)
 	if err != nil {
 		return microerror.Mask(err)
 	}
