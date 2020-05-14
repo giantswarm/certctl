@@ -72,7 +72,7 @@ func setup(c Config) error {
 		}
 	}
 
-	releaseVersion, err := c.ApprClient.GetReleaseVersion(ctx, key.VaultReleaseName(), "stable")
+	releaseVersion, err := c.ApprClient.GetReleaseVersion(ctx, fmt.Sprintf("%s-chart", key.VaultReleaseName()), "stable")
 	if err != nil {
 		return microerror.Mask(err)
 	}
