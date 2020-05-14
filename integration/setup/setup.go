@@ -82,11 +82,14 @@ func setup(c Config) error {
 		}()
 	}
 
+	// VaultAppValues values required by chart-operator-chart.
+	const VaultAppValues = `namespace: "giantswarm"`
+
 	err = c.HelmClient.InstallReleaseFromTarball(ctx,
 		tarballPath,
 		namespace,
 		helm.ReleaseName(key.VaultReleaseName()),
-		helm.ValueOverrides([]byte("")))
+		helm.ValueOverrides([]byte(VaultAppValues)))
 	if err != nil {
 		return microerror.Mask(err)
 	}
