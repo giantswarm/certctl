@@ -85,7 +85,8 @@ func setup(c Config) error {
 	err = c.HelmClient.InstallReleaseFromTarball(ctx,
 		tarballPath,
 		namespace,
-		helm.ReleaseName(key.VaultReleaseName()))
+		helm.ReleaseName(key.VaultReleaseName()),
+		helm.ValueOverrides([]byte("")))
 	if err != nil {
 		return microerror.Mask(err)
 	}
