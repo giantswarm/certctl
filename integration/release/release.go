@@ -78,31 +78,3 @@ func (r *Release) WaitForPod(ctx context.Context, namespace, labelSelector strin
 
 	return nil
 }
-
-func (r *Release) WaitForReleaseStatus(ctx context.Context, namespace, release, status string) error {
-	o := func() error {
-		rc, err := r.helmClient.GetReleaseContent(ctx, release)
-		if helmclient.IsReleaseNotFound(err) && status == "uninstalled"{
-			// Error is expected because we purge releases when deleting.
-			return nil
-		} else if err != nil {
-			return microerror.Mask(err)
-		}
-		if rc.Status != status {
-			return microerror.Maskf(releaseStatusNotMatchingError, "waiting for '%s', current '%s'", status, rc.Status)
-		}
-		return nil
-	}
-
-	n := func(err error, t time.Duration) {
-		r.logger.Log("level", "debug", "message", fmt.Sprintf("failed to get release status '%s': retrying in %s", status, t), "stack", fmt.Sprintf("%v", err))
-	}
-
-	b := backoff.NewExponential(10*time.Minute, 60*time.Second)
-	err := backoff.RetryNotify(o, b, n)
-	if err != nil {
-		return microerror.Mask(err)
-	}
-	return nil
-}
-
