@@ -3,13 +3,14 @@
 package setup
 
 import (
-	"github.com/giantswarm/e2e-harness/pkg/release"
+	"github.com/giantswarm/apprclient"
 	"github.com/giantswarm/helmclient"
 	"github.com/giantswarm/k8sclient"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 
 	"github.com/giantswarm/certctl/integration/env"
+	"github.com/giantswarm/certctl/integration/release"
 )
 
 const (
@@ -18,9 +19,10 @@ const (
 )
 
 type Config struct {
-	Clients    *k8sclient.Clients
+	ApprClient apprclient.Interface
+	HelmClient helmclient.Interface
+	Clients    k8sclient.Interface
 	Logger     micrologger.Logger
-	HelmClient *helmclient.Client
 	Release    *release.Release
 	Setup      *k8sclient.Setup
 }
@@ -33,6 +35,21 @@ func NewConfig() (Config, error) {
 		c := micrologger.Config{}
 
 		logger, err = micrologger.New(c)
+		if err != nil {
+			return Config{}, microerror.Mask(err)
+		}
+	}
+
+	var apprClient apprclient.Interface
+	{
+		c := apprclient.Config{
+			Logger: logger,
+
+			Address:      "https://quay.io",
+			Organization: "giantswarm",
+		}
+
+		apprClient, err = apprclient.New(c)
 		if err != nil {
 			return Config{}, microerror.Mask(err)
 		}
@@ -65,7 +82,7 @@ func NewConfig() (Config, error) {
 		}
 	}
 
-	var helmClient *helmclient.Client
+	var helmClient helmclient.Interface
 	{
 		c := helmclient.Config{
 			Logger:    logger,
@@ -84,13 +101,9 @@ func NewConfig() (Config, error) {
 	var newRelease *release.Release
 	{
 		c := release.Config{
-			ExtClient:  cpK8sClients.ExtClient(),
-			G8sClient:  cpK8sClients.G8sClient(),
 			HelmClient: helmClient,
-			K8sClient:  cpK8sClients.K8sClient(),
+			K8sClient:  cpK8sClients,
 			Logger:     logger,
-
-			Namespace: namespace,
 		}
 
 		newRelease, err = release.New(c)
@@ -100,6 +113,7 @@ func NewConfig() (Config, error) {
 	}
 
 	c := Config{
+		ApprClient: apprClient,
 		Clients:    cpK8sClients,
 		Logger:     logger,
 		HelmClient: helmClient,

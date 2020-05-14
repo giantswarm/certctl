@@ -4,13 +4,15 @@ package setup
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"testing"
 
-	"github.com/giantswarm/e2e-harness/pkg/release"
 	"github.com/giantswarm/e2etemplates/pkg/chartvalues"
 	"github.com/giantswarm/microerror"
+	"github.com/spf13/afero"
+	"k8s.io/helm/pkg/helm"
 
 	"github.com/giantswarm/certctl/integration/env"
 	"github.com/giantswarm/certctl/integration/key"
@@ -70,9 +72,47 @@ func setup(c Config) error {
 		}
 	}
 
-	err = c.Release.Install(ctx, key.VaultReleaseName(), release.NewStableVersion(), values, c.Release.Condition().PodExists(ctx, "default", "app=vault"))
+	releaseVersion, err := c.ApprClient.GetReleaseVersion(ctx, key.VaultReleaseName(), "stable")
 	if err != nil {
 		return microerror.Mask(err)
+	}
+
+	operatorTarballPath, err := c.ApprClient.PullChartTarballFromRelease(ctx, key.VaultReleaseName(), releaseVersion)
+	if err != nil {
+		return microerror.Mask(err)
+	}
+
+	defer func() {
+		fs := afero.NewOsFs()
+		err := fs.Remove(operatorTarballPath)
+		if err != nil {
+			c.Logger.LogCtx(ctx, "level", "error", "message", fmt.Sprintf("deletion of %#q failed", operatorTarballPath), "stack", fmt.Sprintf("%#v", err))
+		}
+	}()
+
+	err = c.HelmClient.InstallReleaseFromTarball(ctx,
+		operatorTarballPath,
+		namespace,
+		helm.ReleaseName(key.VaultReleaseName()),
+		helm.ValueOverrides([]byte(values)))
+	if err != nil {
+		return microerror.Mask(err)
+	}
+
+	//err = c.Release.Install(ctx, key.VaultReleaseName(), release.NewStableVersion(), values, c.Release...PodExists(ctx, "default", "app=vault"))
+	//if err != nil {
+	//	return microerror.Mask(err)
+	//}
+
+	{
+		c.Logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("waiting for vault pod"))
+
+		err = c.Release.WaitForPod(ctx, namespace, "app=vault")
+		if err != nil {
+			return microerror.Mask(err)
+		}
+
+		c.Logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("waited for vault pod"))
 	}
 
 	return nil
