@@ -83,7 +83,11 @@ func setup(c Config) error {
 	}
 
 	// VaultAppValues values required by chart-operator-chart.
-	const VaultAppValues = `namespace: "giantswarm"`
+	const VaultAppValues = `
+namespace: "giantswarm"
+storage:
+  size: 512Mi
+`
 
 	err = c.HelmClient.InstallReleaseFromTarball(ctx,
 		tarballPath,
