@@ -23,7 +23,7 @@ workflows:
 
       - architect/push-to-docker:
           name: push-certctl-to-quay-master
-          image: "quay.io/giantswarm/aws-operator"
+          image: "quay.io/giantswarm/certctl"
           username_envar: "QUAY_USERNAME"
           password_envar: "QUAY_PASSWORD"
           requires:
