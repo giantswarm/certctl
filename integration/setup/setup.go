@@ -5,7 +5,6 @@ package setup
 import (
 	"context"
 	"fmt"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"log"
 	"os"
 	"testing"
@@ -13,6 +12,7 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/giantswarm/microerror"
 	"github.com/spf13/afero"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/helm/pkg/helm"
 
 	"github.com/giantswarm/certctl/integration/env"
