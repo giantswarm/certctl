@@ -86,6 +86,7 @@ func setup(c Config) error {
 	const VaultAppValues = `
 namespace: "giantswarm"
 storage:
+  class_name: ""
   size: 512Mi
 `
 
