@@ -82,7 +82,7 @@ func setup(c Config) error {
 	}
 
 	values := `
-vault
+vault:
   token: %s
 `
 	values = fmt.Sprintf(values, env.VaultToken())
