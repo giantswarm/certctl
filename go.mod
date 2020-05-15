@@ -3,6 +3,7 @@ module github.com/giantswarm/certctl
 go 1.13
 
 require (
+	github.com/ghodss/yaml v1.0.0
 	github.com/giantswarm/apprclient v0.2.0
 	github.com/giantswarm/backoff v0.2.0
 	github.com/giantswarm/go-uuid v0.0.0-20141202165402-ed3ca8a15a93
