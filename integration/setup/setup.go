@@ -5,10 +5,12 @@ package setup
 import (
 	"context"
 	"fmt"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"log"
 	"os"
 	"testing"
 
+	"github.com/ghodss/yaml"
 	"github.com/giantswarm/microerror"
 	"github.com/spf13/afero"
 	"k8s.io/helm/pkg/helm"
@@ -81,30 +83,30 @@ func setup(c Config) error {
 		}()
 	}
 
-	values := `
-vault:
-  token: %s
-`
-	values = fmt.Sprintf(values, env.VaultToken())
+	values := map[string]interface{}{
+		"vault": map[string]interface{}{
+			"token": env.VaultToken(),
+		},
+	}
+
+	bytes, err := yaml.Marshal(values)
+	if err != nil {
+		return microerror.Mask(err)
+	}
 
 	err = c.HelmClient.InstallReleaseFromTarball(ctx,
 		operatorTarballPath,
 		namespace,
 		helm.ReleaseName(key.VaultReleaseName()),
-		helm.ValueOverrides([]byte(values)))
+		helm.ValueOverrides(bytes))
 	if err != nil {
 		return microerror.Mask(err)
 	}
 
-	//err = c.Release.Install(ctx, key.VaultReleaseName(), release.NewStableVersion(), values, c.Release...PodExists(ctx, "default", "app=vault"))
-	//if err != nil {
-	//	return microerror.Mask(err)
-	//}
-
 	{
 		c.Logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("waiting for vault pod"))
 
-		err = c.Release.WaitForPod(ctx, namespace, "app=vault")
+		err = c.Release.WaitForPod(ctx, metav1.NamespaceDefault, "app=vault")
 		if err != nil {
 			return microerror.Mask(err)
 		}
