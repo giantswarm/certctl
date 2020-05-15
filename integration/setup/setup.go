@@ -9,16 +9,12 @@ import (
 	"os"
 	"testing"
 
-	"github.com/giantswarm/appcatalog"
 	"github.com/giantswarm/microerror"
 	"github.com/spf13/afero"
 	"k8s.io/helm/pkg/helm"
 
+	"github.com/giantswarm/certctl/integration/env"
 	"github.com/giantswarm/certctl/integration/key"
-)
-
-const (
-	vaultAppRelease = "vault-app"
 )
 
 func WrapTestMain(c Config, m *testing.M) {
@@ -61,43 +57,39 @@ func setup(c Config) error {
 		}
 	}
 
-	var tarballPath string
+	var operatorTarballPath string
 	{
-		tarballURL, err := appcatalog.GetLatestChart(ctx, key.OperationPlatformCatalogStorageURL(), vaultAppRelease, "")
+		name := fmt.Sprintf("%s-chart", key.VaultReleaseName())
+		releaseVersion, err := c.ApprClient.GetReleaseVersion(ctx, name, "stable")
 		if err != nil {
 			return microerror.Mask(err)
 		}
 
-		tarballPath, err = c.HelmClient.PullChartTarball(ctx, tarballURL)
+		operatorTarballPath, err := c.ApprClient.PullChartTarballFromRelease(ctx, name, releaseVersion)
 		if err != nil {
 			return microerror.Mask(err)
 		}
 
 		defer func() {
 			fs := afero.NewOsFs()
-			err := fs.Remove(tarballPath)
+			err := fs.Remove(operatorTarballPath)
 			if err != nil {
-				c.Logger.LogCtx(ctx, "level", "error", "message", fmt.Sprintf("deletion of %#q failed", tarballPath), "stack", fmt.Sprintf("%#v", err))
+				c.Logger.LogCtx(ctx, "level", "error", "message", fmt.Sprintf("deletion of %#q failed", operatorTarballPath), "stack", fmt.Sprintf("%#v", err))
 			}
 		}()
 	}
 
-	// VaultAppValues values required by chart-operator-chart.
-	const VaultAppValues = `
-namespace: "giantswarm"
-storage:
-  class_name: ""
-  size: 512Mi
-vault:
-  tls:
-    enabled: false
+	values := `
+vault
+  token: %s
 `
+	values = fmt.Sprintf(values, env.VaultToken())
 
 	err = c.HelmClient.InstallReleaseFromTarball(ctx,
-		tarballPath,
+		operatorTarballPath,
 		namespace,
 		helm.ReleaseName(key.VaultReleaseName()),
-		helm.ValueOverrides([]byte(VaultAppValues)))
+		helm.ValueOverrides([]byte(values)))
 	if err != nil {
 		return microerror.Mask(err)
 	}
