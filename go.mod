@@ -14,7 +14,7 @@ require (
 	github.com/giantswarm/vaultrole v0.2.0
 	github.com/hashicorp/vault/api v1.0.4
 	github.com/juju/errgo v0.0.0-20140925100237-08cceb5d0b53
-	github.com/spf13/cobra v0.0.5
+	github.com/spf13/cobra v0.0.7
 	k8s.io/apimachinery v0.16.6
 )
 
