@@ -5,7 +5,6 @@ go 1.13
 require (
 	github.com/giantswarm/apprclient v0.2.0
 	github.com/giantswarm/backoff v0.2.0
-	github.com/giantswarm/e2etemplates v0.2.0
 	github.com/giantswarm/go-uuid v0.0.0-20141202165402-ed3ca8a15a93
 	github.com/giantswarm/helmclient v0.2.0
 	github.com/giantswarm/k8sclient v0.2.0
