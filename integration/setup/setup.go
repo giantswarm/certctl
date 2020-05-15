@@ -88,6 +88,9 @@ namespace: "giantswarm"
 storage:
   class_name: ""
   size: 512Mi
+vault:
+  tls:
+    enabled: false
 `
 
 	err = c.HelmClient.InstallReleaseFromTarball(ctx,
