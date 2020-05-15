@@ -65,10 +65,12 @@ func setup(c Config) error {
 			return microerror.Mask(err)
 		}
 
-		operatorTarballPath, err := c.ApprClient.PullChartTarballFromRelease(ctx, name, releaseVersion)
+		operatorTarballPath, err = c.ApprClient.PullChartTarballFromRelease(ctx, name, releaseVersion)
 		if err != nil {
 			return microerror.Mask(err)
 		}
+
+		c.Logger.Log("level", "debug", "message", fmt.Sprintf("tarball path '%s':", operatorTarballPath))
 
 		defer func() {
 			fs := afero.NewOsFs()
