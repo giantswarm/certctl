@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/giantswarm/backoff"
-	"github.com/giantswarm/helmclient"
 	"github.com/giantswarm/k8sclient"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
@@ -17,21 +16,16 @@ import (
 )
 
 type Config struct {
-	HelmClient helmclient.Interface
-	K8sClient  k8sclient.Interface
-	Logger     micrologger.Logger
+	K8sClient k8sclient.Interface
+	Logger    micrologger.Logger
 }
 
 type Release struct {
-	helmClient helmclient.Interface
-	k8sClient  k8sclient.Interface
-	logger     micrologger.Logger
+	k8sClient k8sclient.Interface
+	logger    micrologger.Logger
 }
 
 func New(config Config) (*Release, error) {
-	if config.HelmClient == nil {
-		return nil, microerror.Maskf(invalidConfigError, "%T.HelmClient must not be empty", config)
-	}
 	if config.K8sClient == nil {
 		return nil, microerror.Maskf(invalidConfigError, "%T.K8sClient must not be empty", config)
 	}
@@ -40,9 +34,8 @@ func New(config Config) (*Release, error) {
 	}
 
 	r := &Release{
-		helmClient: config.HelmClient,
-		k8sClient:  config.K8sClient,
-		logger:     config.Logger,
+		k8sClient: config.K8sClient,
+		logger:    config.Logger,
 	}
 
 	return r, nil

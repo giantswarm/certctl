@@ -14,8 +14,7 @@ import (
 )
 
 const (
-	namespace       = "giantswarm"
-	tillerNamespace = "kube-system"
+	namespace = "giantswarm"
 )
 
 type Config struct {
@@ -86,10 +85,7 @@ func NewConfig() (Config, error) {
 	{
 		c := helmclient.Config{
 			Logger:    logger,
-			K8sClient: cpK8sClients.K8sClient(),
-
-			RestConfig:      cpK8sClients.RESTConfig(),
-			TillerNamespace: tillerNamespace,
+			K8sClient: cpK8sClients,
 		}
 
 		helmClient, err = helmclient.New(c)
@@ -101,9 +97,8 @@ func NewConfig() (Config, error) {
 	var newRelease *release.Release
 	{
 		c := release.Config{
-			HelmClient: helmClient,
-			K8sClient:  cpK8sClients,
-			Logger:     logger,
+			K8sClient: cpK8sClients,
+			Logger:    logger,
 		}
 
 		newRelease, err = release.New(c)

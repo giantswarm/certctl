@@ -5,18 +5,16 @@ package setup
 import (
 	"context"
 	"fmt"
+	"github.com/giantswarm/helmclient"
 	"log"
 	"os"
 	"testing"
 
-	"github.com/ghodss/yaml"
+	"github.com/giantswarm/certctl/integration/env"
+	"github.com/giantswarm/certctl/integration/key"
 	"github.com/giantswarm/microerror"
 	"github.com/spf13/afero"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/helm/pkg/helm"
-
-	"github.com/giantswarm/certctl/integration/env"
-	"github.com/giantswarm/certctl/integration/key"
 )
 
 func WrapTestMain(c Config, m *testing.M) {
@@ -52,11 +50,6 @@ func setup(c Config) error {
 		if err != nil {
 			return microerror.Mask(err)
 		}
-
-		err = c.HelmClient.EnsureTillerInstalled(ctx)
-		if err != nil {
-			return microerror.Mask(err)
-		}
 	}
 
 	var operatorTarballPath string
@@ -89,16 +82,15 @@ func setup(c Config) error {
 		},
 	}
 
-	bytes, err := yaml.Marshal(values)
-	if err != nil {
-		return microerror.Mask(err)
+	opts := helmclient.InstallOptions{
+		ReleaseName: key.VaultReleaseName(),
 	}
 
 	err = c.HelmClient.InstallReleaseFromTarball(ctx,
 		operatorTarballPath,
 		namespace,
-		helm.ReleaseName(key.VaultReleaseName()),
-		helm.ValueOverrides(bytes))
+		values,
+		opts)
 	if err != nil {
 		return microerror.Mask(err)
 	}
