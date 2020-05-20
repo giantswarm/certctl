@@ -5,16 +5,17 @@ package setup
 import (
 	"context"
 	"fmt"
-	"github.com/giantswarm/helmclient"
 	"log"
 	"os"
 	"testing"
 
-	"github.com/giantswarm/certctl/integration/env"
-	"github.com/giantswarm/certctl/integration/key"
+	"github.com/giantswarm/helmclient"
 	"github.com/giantswarm/microerror"
 	"github.com/spf13/afero"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/giantswarm/certctl/integration/env"
+	"github.com/giantswarm/certctl/integration/key"
 )
 
 func WrapTestMain(c Config, m *testing.M) {
