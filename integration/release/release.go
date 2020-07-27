@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/giantswarm/backoff"
-	"github.com/giantswarm/k8sclient"
+	"github.com/giantswarm/k8sclient/v3/pkg/k8sclient"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 	corev1 "k8s.io/api/core/v1"
@@ -43,7 +43,7 @@ func New(config Config) (*Release, error) {
 
 func (r *Release) WaitForPod(ctx context.Context, namespace, labelSelector string) error {
 	o := func() error {
-		pods, err := r.k8sClient.K8sClient().CoreV1().Pods(namespace).List(metav1.ListOptions{LabelSelector: labelSelector})
+		pods, err := r.k8sClient.K8sClient().CoreV1().Pods(namespace).List(ctx, metav1.ListOptions{LabelSelector: labelSelector})
 		if err != nil {
 			return microerror.Mask(err)
 		}

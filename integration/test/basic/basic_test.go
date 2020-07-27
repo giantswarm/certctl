@@ -3,6 +3,7 @@
 package basic
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -173,7 +174,7 @@ func createToken(svc token.Service) (string, error) {
 }
 
 func getVaultAddr() (string, error) {
-	vaultSvc, err := c.Clients.K8sClient().CoreV1().Services("default").Get("vault", meta_v1.GetOptions{})
+	vaultSvc, err := c.Clients.K8sClient().CoreV1().Services("default").Get(context.TODO(), "vault", meta_v1.GetOptions{})
 	if err != nil {
 		return "", microerror.Mask(err)
 	}
