@@ -4,7 +4,7 @@ import (
 	"github.com/giantswarm/microerror"
 	vaultclient "github.com/hashicorp/vault/api"
 
-	"github.com/giantswarm/certctl/service/spec"
+	"github.com/giantswarm/certctl/v2/service/spec"
 )
 
 // Config represents the configuration used to create a new Vault factory.

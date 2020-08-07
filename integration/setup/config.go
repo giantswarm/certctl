@@ -3,14 +3,14 @@
 package setup
 
 import (
-	"github.com/giantswarm/apprclient"
-	"github.com/giantswarm/helmclient"
-	"github.com/giantswarm/k8sclient/v3/pkg/k8sclient"
+	"github.com/giantswarm/apprclient/v2"
+	"github.com/giantswarm/helmclient/v2"
+	"github.com/giantswarm/k8sclient/v4/pkg/k8sclient"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 
-	"github.com/giantswarm/certctl/integration/env"
-	"github.com/giantswarm/certctl/integration/release"
+	"github.com/giantswarm/certctl/v2/integration/env"
+	"github.com/giantswarm/certctl/v2/integration/release"
 )
 
 const (

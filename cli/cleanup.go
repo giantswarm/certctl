@@ -8,9 +8,9 @@ import (
 	vaultclient "github.com/hashicorp/vault/api"
 	"github.com/spf13/cobra"
 
-	"github.com/giantswarm/certctl/service/pki"
-	"github.com/giantswarm/certctl/service/token"
-	vaultfactory "github.com/giantswarm/certctl/service/vault-factory"
+	"github.com/giantswarm/certctl/v2/service/pki"
+	"github.com/giantswarm/certctl/v2/service/token"
+	vaultfactory "github.com/giantswarm/certctl/v2/service/vault-factory"
 )
 
 type cleanupFlags struct {

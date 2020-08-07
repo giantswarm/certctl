@@ -17,12 +17,12 @@ import (
 	vaultclient "github.com/hashicorp/vault/api"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/giantswarm/certctl/integration/env"
-	certsigner "github.com/giantswarm/certctl/service/cert-signer"
-	"github.com/giantswarm/certctl/service/pki"
-	"github.com/giantswarm/certctl/service/spec"
-	"github.com/giantswarm/certctl/service/token"
-	vaultfactory "github.com/giantswarm/certctl/service/vault-factory"
+	"github.com/giantswarm/certctl/v2/integration/env"
+	certsigner "github.com/giantswarm/certctl/v2/service/cert-signer"
+	"github.com/giantswarm/certctl/v2/service/pki"
+	"github.com/giantswarm/certctl/v2/service/spec"
+	"github.com/giantswarm/certctl/v2/service/token"
+	vaultfactory "github.com/giantswarm/certctl/v2/service/vault-factory"
 )
 
 func TestIssuance(t *testing.T) {
