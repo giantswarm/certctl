@@ -1,19 +1,19 @@
-module github.com/giantswarm/certctl
+module github.com/giantswarm/certctl/v2
 
-go 1.13
+go 1.14
 
 require (
-	github.com/giantswarm/apprclient v0.2.1-0.20200724085653-63c7eb430dcf
+	github.com/giantswarm/apprclient/v2 v2.0.0-20200807082146-02053a5c7c4d
 	github.com/giantswarm/backoff v0.2.0
 	github.com/giantswarm/go-uuid v0.0.0-20141202165402-ed3ca8a15a93
-	github.com/giantswarm/helmclient v1.0.6-0.20200724131413-ea0311052b6e
-	github.com/giantswarm/k8sclient/v3 v3.1.3-0.20200724085258-345602646ea8
-	github.com/giantswarm/microerror v0.2.0
+	github.com/giantswarm/helmclient/v2 v2.0.0-20200807083927-a727a3bb1283
+	github.com/giantswarm/k8sclient/v4 v4.0.0-20200806115259-2d3b230ace59
+	github.com/giantswarm/microerror v0.2.1
 	github.com/giantswarm/micrologger v0.3.1
 	github.com/giantswarm/vaultrole v0.2.0
 	github.com/hashicorp/vault/api v1.0.4
 	github.com/juju/errgo v0.0.0-20140925100237-08cceb5d0b53
-	github.com/spf13/afero v1.3.2
+	github.com/spf13/afero v1.3.3
 	github.com/spf13/cobra v1.0.0
 	k8s.io/api v0.18.5
 	k8s.io/apimachinery v0.18.5
