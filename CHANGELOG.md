@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2020-08-11
+
 ### Changed
 
 - Updated Kubernetes dependencies to v1.18.5.
@@ -21,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Migrate from dep to Go modules.
 
-[Unreleased]: https://github.com/giantswarm/certctl/compare/v0.6.1...HEAD
+[Unreleased]: https://github.com/giantswarm/certctl/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/giantswarm/certctl/compare/v0.6.1...v2.0.0
 [0.6.1]: https://github.com/giantswarm/certctl/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/giantswarm/certctl/releases/tag/v0.6.0
