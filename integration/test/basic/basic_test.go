@@ -3,6 +3,7 @@
 package basic
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -16,12 +17,12 @@ import (
 	vaultclient "github.com/hashicorp/vault/api"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/giantswarm/certctl/integration/env"
-	certsigner "github.com/giantswarm/certctl/service/cert-signer"
-	"github.com/giantswarm/certctl/service/pki"
-	"github.com/giantswarm/certctl/service/spec"
-	"github.com/giantswarm/certctl/service/token"
-	vaultfactory "github.com/giantswarm/certctl/service/vault-factory"
+	"github.com/giantswarm/certctl/v2/integration/env"
+	certsigner "github.com/giantswarm/certctl/v2/service/cert-signer"
+	"github.com/giantswarm/certctl/v2/service/pki"
+	"github.com/giantswarm/certctl/v2/service/spec"
+	"github.com/giantswarm/certctl/v2/service/token"
+	vaultfactory "github.com/giantswarm/certctl/v2/service/vault-factory"
 )
 
 func TestIssuance(t *testing.T) {
@@ -173,7 +174,7 @@ func createToken(svc token.Service) (string, error) {
 }
 
 func getVaultAddr() (string, error) {
-	vaultSvc, err := c.Clients.K8sClient().CoreV1().Services("default").Get("vault", meta_v1.GetOptions{})
+	vaultSvc, err := c.Clients.K8sClient().CoreV1().Services("default").Get(context.TODO(), "vault", meta_v1.GetOptions{})
 	if err != nil {
 		return "", microerror.Mask(err)
 	}

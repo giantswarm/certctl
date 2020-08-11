@@ -5,7 +5,7 @@ package basic
 import (
 	"testing"
 
-	"github.com/giantswarm/certctl/integration/setup"
+	"github.com/giantswarm/certctl/v2/integration/setup"
 )
 
 var (

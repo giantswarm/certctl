@@ -11,9 +11,9 @@ import (
 	vaultclient "github.com/hashicorp/vault/api"
 	"github.com/spf13/cobra"
 
-	certsigner "github.com/giantswarm/certctl/service/cert-signer"
-	"github.com/giantswarm/certctl/service/spec"
-	vaultfactory "github.com/giantswarm/certctl/service/vault-factory"
+	certsigner "github.com/giantswarm/certctl/v2/service/cert-signer"
+	"github.com/giantswarm/certctl/v2/service/spec"
+	vaultfactory "github.com/giantswarm/certctl/v2/service/vault-factory"
 )
 
 type issueFlags struct {

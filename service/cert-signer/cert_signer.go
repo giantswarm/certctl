@@ -8,8 +8,8 @@ import (
 	vaultrolekey "github.com/giantswarm/vaultrole/key"
 	vaultclient "github.com/hashicorp/vault/api"
 
-	"github.com/giantswarm/certctl/service/role"
-	"github.com/giantswarm/certctl/service/spec"
+	"github.com/giantswarm/certctl/v2/service/role"
+	"github.com/giantswarm/certctl/v2/service/spec"
 )
 
 // Config represents the configuration used to create a new certificate signer.

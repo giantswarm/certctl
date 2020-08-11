@@ -5,7 +5,7 @@ import (
 
 	"github.com/giantswarm/microerror"
 
-	"github.com/giantswarm/certctl/cli"
+	"github.com/giantswarm/certctl/v2/cli"
 )
 
 func main() {

@@ -9,13 +9,13 @@ import (
 	"os"
 	"testing"
 
-	"github.com/giantswarm/helmclient"
+	"github.com/giantswarm/helmclient/v2/pkg/helmclient"
 	"github.com/giantswarm/microerror"
 	"github.com/spf13/afero"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/giantswarm/certctl/integration/env"
-	"github.com/giantswarm/certctl/integration/key"
+	"github.com/giantswarm/certctl/v2/integration/env"
+	"github.com/giantswarm/certctl/v2/integration/key"
 )
 
 func WrapTestMain(c Config, m *testing.M) {
