@@ -9,7 +9,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/giantswarm/helmclient/v2"
+	"github.com/giantswarm/helmclient/v2/pkg/helmclient"
 	"github.com/giantswarm/microerror"
 	"github.com/spf13/afero"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
