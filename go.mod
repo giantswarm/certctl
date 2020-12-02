@@ -3,20 +3,23 @@ module github.com/giantswarm/certctl/v2
 go 1.14
 
 require (
-	github.com/giantswarm/apprclient/v2 v2.0.0
+	github.com/asaskevich/govalidator v0.0.0-20200108200545-475eaeb16496 // indirect
+	github.com/giantswarm/appcatalog v0.3.1
+	github.com/giantswarm/apptest v0.7.1
 	github.com/giantswarm/backoff v0.2.0
 	github.com/giantswarm/go-uuid v0.0.0-20141202165402-ed3ca8a15a93
-	github.com/giantswarm/helmclient/v2 v2.0.0
 	github.com/giantswarm/k8sclient/v4 v4.0.0
 	github.com/giantswarm/microerror v0.2.1
-	github.com/giantswarm/micrologger v0.3.1
+	github.com/giantswarm/micrologger v0.3.4
 	github.com/giantswarm/vaultrole v0.2.0
 	github.com/hashicorp/vault/api v1.0.4
 	github.com/juju/errgo v0.0.0-20140925100237-08cceb5d0b53
-	github.com/spf13/afero v1.3.4
 	github.com/spf13/cobra v1.0.0
-	k8s.io/api v0.18.5
-	k8s.io/apimachinery v0.18.5
+	github.com/stretchr/testify v1.5.1 // indirect
+	golang.org/x/crypto v0.0.0-20200414173820-0848c9571904 // indirect
+	k8s.io/api v0.18.9
+	k8s.io/apimachinery v0.18.9
+	sigs.k8s.io/yaml v1.2.0
 )
 
 replace (
