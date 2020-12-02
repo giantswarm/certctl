@@ -4,7 +4,7 @@ go 1.14
 
 require (
 	github.com/asaskevich/govalidator v0.0.0-20200108200545-475eaeb16496 // indirect
-	github.com/giantswarm/appcatalog v0.3.1
+	github.com/giantswarm/appcatalog v0.3.2-0.20201202131113-2b8cc1852ce2
 	github.com/giantswarm/apptest v0.7.1
 	github.com/giantswarm/backoff v0.2.0
 	github.com/giantswarm/go-uuid v0.0.0-20141202165402-ed3ca8a15a93
