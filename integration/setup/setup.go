@@ -91,8 +91,7 @@ func setup(c Config) error {
 		}
 		err = c.AppSetup.InstallApps(ctx, apps)
 		if err != nil {
-			c.Logger.LogCtx(ctx, "level", "error", "message", "install apps failed", "stack", fmt.Sprintf("%#v\n", err))
-			os.Exit(-1)
+			return microerror.Mask(err)
 		}
 	}
 

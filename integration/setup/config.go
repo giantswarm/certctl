@@ -46,7 +46,7 @@ func NewConfig() (Config, error) {
 		}
 		appSetup, err = apptest.New(c)
 		if err != nil {
-			panic(err.Error())
+			return Config{}, microerror.Mask(err)
 		}
 	}
 
