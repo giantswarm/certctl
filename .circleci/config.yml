@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  architect: giantswarm/architect@0.10.1
+  architect: giantswarm/architect@0.18.1
 
 workflows:
   build:
@@ -17,6 +17,7 @@ workflows:
       - architect/integration-test:
           name: integration-test-basic
           kind-config: "integration/test/basic/kind-config.yaml"
+          install-app-platform: true
           test-dir: "integration/test/basic"
           requires:
             - go-build

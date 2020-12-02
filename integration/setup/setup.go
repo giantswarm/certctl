@@ -9,13 +9,19 @@ import (
 	"os"
 	"testing"
 
-	"github.com/giantswarm/helmclient/v2/pkg/helmclient"
+	"github.com/giantswarm/appcatalog"
+	"github.com/giantswarm/apptest"
 	"github.com/giantswarm/microerror"
-	"github.com/spf13/afero"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/yaml"
 
 	"github.com/giantswarm/certctl/v2/integration/env"
 	"github.com/giantswarm/certctl/v2/integration/key"
+)
+
+const (
+	defaultTestCatalog    = "default-test"
+	defaultTestCatalogURL = "https://giantswarm.github.io/default-test-catalog"
 )
 
 func WrapTestMain(c Config, m *testing.M) {
@@ -30,12 +36,6 @@ func WrapTestMain(c Config, m *testing.M) {
 
 	if v == 0 {
 		v = m.Run()
-	}
-
-	err = teardown(c)
-	if err != nil {
-		log.Printf("%#v\n", err)
-		v = 1
 	}
 
 	os.Exit(v)
@@ -53,47 +53,46 @@ func setup(c Config) error {
 		}
 	}
 
-	var operatorTarballPath string
+	name := fmt.Sprintf("%s-chart", key.VaultReleaseName())
+
+	var latestVersion string
 	{
-		name := fmt.Sprintf("%s-chart", key.VaultReleaseName())
-		releaseVersion, err := c.ApprClient.GetReleaseVersion(ctx, name, "stable")
+		latestVersion, err = appcatalog.GetLatestVersion(ctx, defaultTestCatalogURL, name, "")
+		if err != nil {
+			return microerror.Mask(err)
+		}
+	}
+
+	var valuesYaml string
+	{
+		values := map[string]interface{}{
+			"vault": map[string]interface{}{
+				"token": env.VaultToken(),
+			},
+		}
+		bytes, err := yaml.Marshal(values)
 		if err != nil {
 			return microerror.Mask(err)
 		}
 
-		operatorTarballPath, err = c.ApprClient.PullChartTarballFromRelease(ctx, name, releaseVersion)
+		valuesYaml = string(bytes)
+	}
+
+	{
+		apps := []apptest.App{
+			{
+				CatalogName:   defaultTestCatalog,
+				Name:          name,
+				Namespace:     metav1.NamespaceSystem,
+				Version:       latestVersion,
+				ValuesYAML:    valuesYaml,
+				WaitForDeploy: true,
+			},
+		}
+		err = c.AppSetup.InstallApps(ctx, apps)
 		if err != nil {
 			return microerror.Mask(err)
 		}
-
-		c.Logger.Log("level", "debug", "message", fmt.Sprintf("tarball path '%s':", operatorTarballPath))
-
-		defer func() {
-			fs := afero.NewOsFs()
-			err := fs.Remove(operatorTarballPath)
-			if err != nil {
-				c.Logger.LogCtx(ctx, "level", "error", "message", fmt.Sprintf("deletion of %#q failed", operatorTarballPath), "stack", fmt.Sprintf("%#v", err))
-			}
-		}()
-	}
-
-	values := map[string]interface{}{
-		"vault": map[string]interface{}{
-			"token": env.VaultToken(),
-		},
-	}
-
-	opts := helmclient.InstallOptions{
-		ReleaseName: key.VaultReleaseName(),
-	}
-
-	err = c.HelmClient.InstallReleaseFromTarball(ctx,
-		operatorTarballPath,
-		namespace,
-		values,
-		opts)
-	if err != nil {
-		return microerror.Mask(err)
 	}
 
 	{
@@ -107,9 +106,5 @@ func setup(c Config) error {
 		c.Logger.LogCtx(ctx, "level", "debug", "message", fmt.Sprintf("waited for vault pod"))
 	}
 
-	return nil
-}
-
-func teardown(c Config) error {
 	return nil
 }

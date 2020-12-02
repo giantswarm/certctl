@@ -3,8 +3,7 @@
 package setup
 
 import (
-	"github.com/giantswarm/apprclient/v2"
-	"github.com/giantswarm/helmclient/v2/pkg/helmclient"
+	"github.com/giantswarm/apptest"
 	"github.com/giantswarm/k8sclient/v4/pkg/k8sclient"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
@@ -18,12 +17,11 @@ const (
 )
 
 type Config struct {
-	ApprClient apprclient.Interface
-	HelmClient helmclient.Interface
-	Clients    k8sclient.Interface
-	Logger     micrologger.Logger
-	Release    *release.Release
-	Setup      *k8sclient.Setup
+	AppSetup *apptest.AppSetup
+	Clients  k8sclient.Interface
+	Logger   micrologger.Logger
+	Release  *release.Release
+	Setup    *k8sclient.Setup
 }
 
 func NewConfig() (Config, error) {
@@ -39,16 +37,14 @@ func NewConfig() (Config, error) {
 		}
 	}
 
-	var apprClient apprclient.Interface
+	var appSetup *apptest.AppSetup
 	{
-		c := apprclient.Config{
+		c := apptest.Config{
 			Logger: logger,
 
-			Address:      "https://quay.io",
-			Organization: "giantswarm",
+			KubeConfigPath: env.KubeConfigPath(),
 		}
-
-		apprClient, err = apprclient.New(c)
+		appSetup, err = apptest.New(c)
 		if err != nil {
 			return Config{}, microerror.Mask(err)
 		}
@@ -81,19 +77,6 @@ func NewConfig() (Config, error) {
 		}
 	}
 
-	var helmClient helmclient.Interface
-	{
-		c := helmclient.Config{
-			Logger:    logger,
-			K8sClient: cpK8sClients,
-		}
-
-		helmClient, err = helmclient.New(c)
-		if err != nil {
-			return Config{}, microerror.Mask(err)
-		}
-	}
-
 	var newRelease *release.Release
 	{
 		c := release.Config{
@@ -108,12 +91,11 @@ func NewConfig() (Config, error) {
 	}
 
 	c := Config{
-		ApprClient: apprClient,
-		Clients:    cpK8sClients,
-		Logger:     logger,
-		HelmClient: helmClient,
-		Release:    newRelease,
-		Setup:      k8sSetup,
+		AppSetup: appSetup,
+		Clients:  cpK8sClients,
+		Logger:   logger,
+		Release:  newRelease,
+		Setup:    k8sSetup,
 	}
 
 	return c, nil
