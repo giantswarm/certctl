@@ -11,12 +11,12 @@ import (
 
 	"github.com/giantswarm/appcatalog"
 	"github.com/giantswarm/apptest"
-	"github.com/giantswarm/certctl/v2/integration/key"
 	"github.com/giantswarm/microerror"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/yaml"
 
 	"github.com/giantswarm/certctl/v2/integration/env"
+	"github.com/giantswarm/certctl/v2/integration/key"
 )
 
 const (
