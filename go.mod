@@ -23,7 +23,11 @@ require (
 )
 
 replace (
+	// Apply security fix not present in 3.3.10
+	github.com/coreos/etcd v3.3.10+incompatible => github.com/coreos/etcd v3.3.24+incompatible
 	github.com/ghodss/yaml => github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
+	// Apply security fix not present in v1.4.0.
+	github.com/gorilla/websocket => github.com/gorilla/websocket v1.4.2
 	github.com/lib/pq => github.com/lib/pq v1.3.0
 	github.com/mailru/easyjson => github.com/mailru/easyjson v0.7.0
 	github.com/mattn/go-colorable => github.com/mattn/go-colorable v0.0.9
