@@ -16,7 +16,6 @@ require (
 	github.com/juju/errgo v0.0.0-20140925100237-08cceb5d0b53
 	github.com/spf13/cobra v1.0.0
 	github.com/stretchr/testify v1.5.1 // indirect
-	golang.org/x/crypto v0.0.0-20200414173820-0848c9571904 // indirect
 	k8s.io/api v0.18.9
 	k8s.io/apimachinery v0.18.9
 	sigs.k8s.io/yaml v1.2.0
@@ -26,6 +25,7 @@ replace (
 	// Apply security fix not present in 3.3.10
 	github.com/coreos/etcd v3.3.10+incompatible => github.com/coreos/etcd v3.3.24+incompatible
 	github.com/ghodss/yaml => github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
+	github.com/gogo/protobuf v1.3.1 => github.com/gogo/protobuf v1.3.2
 	// Apply security fix not present in v1.4.0.
 	github.com/gorilla/websocket => github.com/gorilla/websocket v1.4.2
 	github.com/lib/pq => github.com/lib/pq v1.3.0
