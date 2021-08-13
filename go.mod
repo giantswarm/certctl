@@ -24,6 +24,7 @@ require (
 replace (
 	// Apply security fix not present in 3.3.10
 	github.com/coreos/etcd v3.3.10+incompatible => github.com/coreos/etcd v3.3.24+incompatible
+	github.com/dgrijalva/jwt-go => github.com/form3tech-oss/jwt-go v3.2.1+incompatible
 	github.com/ghodss/yaml => github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
 	github.com/gogo/protobuf v1.3.1 => github.com/gogo/protobuf v1.3.2
 	// Apply security fix not present in v1.4.0.
