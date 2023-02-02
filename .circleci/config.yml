@@ -36,7 +36,7 @@ workflows:
 
       - architect/push-to-docker:
           name: push-certctl-to-aliyun-master
-          image: "registry-intl.cn-shanghai.aliyuncs.com/giantswarm/certctl"
+          image: "giantswarm-registry.cn-shanghai.cr.aliyuncs.com/giantswarm/certctl"
           username_envar: "ALIYUN_USERNAME"
           password_envar: "ALIYUN_PASSWORD"
           requires:
