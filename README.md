@@ -1,9 +1,8 @@
 # certctl
 
-[![CircleCI](https://circleci.com/gh/giantswarm/certctl.svg?style=shield)](https://circleci.com/gh/giantswarm/certctl)
-[![Docker Repository on Quay](https://quay.io/repository/giantswarm/certctl/status "Docker Repository on Quay")](https://quay.io/repository/giantswarm/certctl)
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/giantswarm/clusterclient/tree/master.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/giantswarm/clusterclient/tree/master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/giantswarm/certctl)](https://goreportcard.com/report/github.com/giantswarm/certctl)
-[![Godoc](https://godoc.org/github.com/giantswarm/certctl?status.svg)](http://godoc.org/github.com/giantswarm/certctl)
+[![Godoc](https://pkg.go.dev/badge/github.com/giantswarm/certctl)](https://pkg.go.dev/github.com/giantswarm/certctl)
 
 A command line tool able to request certificate generation from Vault to write certificate files to the local filesystem.
 
