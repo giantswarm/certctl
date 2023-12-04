@@ -2,7 +2,6 @@ package cli
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -155,7 +154,7 @@ func issueRun(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatalf("%#v\n", microerror.Mask(err))
 	}
-	err = ioutil.WriteFile(newIssueFlags.CrtFilePath, []byte(newIssueResponse.Certificate), os.FileMode(0644))
+	err = os.WriteFile(newIssueFlags.CrtFilePath, []byte(newIssueResponse.Certificate), os.FileMode(0644))
 	if err != nil {
 		log.Fatalf("%#v\n", microerror.Mask(err))
 	}
@@ -163,7 +162,7 @@ func issueRun(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatalf("%#v\n", microerror.Mask(err))
 	}
-	err = ioutil.WriteFile(newIssueFlags.KeyFilePath, []byte(newIssueResponse.PrivateKey), os.FileMode(0600))
+	err = os.WriteFile(newIssueFlags.KeyFilePath, []byte(newIssueResponse.PrivateKey), os.FileMode(0600))
 	if err != nil {
 		log.Fatalf("%#v\n", microerror.Mask(err))
 	}
@@ -171,7 +170,7 @@ func issueRun(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatalf("%#v\n", microerror.Mask(err))
 	}
-	err = ioutil.WriteFile(newIssueFlags.CAFilePath, []byte(newIssueResponse.IssuingCA), os.FileMode(0644))
+	err = os.WriteFile(newIssueFlags.CAFilePath, []byte(newIssueResponse.IssuingCA), os.FileMode(0644))
 	if err != nil {
 		log.Fatalf("%#v\n", microerror.Mask(err))
 	}
