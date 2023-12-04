@@ -1,4 +1,4 @@
-// +build k8srequired
+//go:build k8srequired
 
 package env
 
