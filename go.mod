@@ -14,8 +14,8 @@ require (
 	github.com/hashicorp/vault/api v1.0.4
 	github.com/juju/errgo v0.0.0-20140925100237-08cceb5d0b53
 	github.com/spf13/cobra v1.0.0
-	k8s.io/api v0.18.9
-	k8s.io/apimachinery v0.18.9
+	k8s.io/api v0.18.14
+	k8s.io/apimachinery v0.18.14
 	sigs.k8s.io/yaml v1.2.0
 )
 
@@ -87,7 +87,7 @@ require (
 	gopkg.in/square/go-jose.v2 v2.3.1 // indirect
 	gopkg.in/yaml.v2 v2.3.0 // indirect
 	k8s.io/apiextensions-apiserver v0.18.9 // indirect
-	k8s.io/client-go v0.18.9 // indirect
+	k8s.io/client-go v0.18.14 // indirect
 	k8s.io/klog v1.0.0 // indirect
 	k8s.io/klog/v2 v2.0.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20200410145947-61e04a5be9a6 // indirect
